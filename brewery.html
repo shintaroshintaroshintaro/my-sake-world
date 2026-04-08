@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>MY SAKE WORLD - 酒蔵管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #B8860B;
+      --gold-light: #D4A820;
+      --gold-pale: #F5EDD5;
+      --bg: #F5F0E8;
+      --bg-card: #FFFFFF;
+      --text: #2C1F0E;
+      --text-muted: #7A6A52;
+      --border: #E2D5BB;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(184,134,11,0.10);
+    }
+
+    body {
+      font-family: 'Noto Serif JP', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== ヘッダー ===== */
+    .header {
+      background: var(--text);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 2px;
+    }
+    .header-sub {
+      font-size: 10px;
+      color: #a89070;
+      margin-top: 2px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge {
+      background: #E74C3C;
+      color: #fff;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 28px;
+      text-align: center;
+      display: none;
+    }
+    .badge.visible { display: inline-block; }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid #a89070;
+      color: #a89070;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Noto Serif JP', serif;
+    }
+    .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ===== メイン ===== */
+    .main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    /* ===== フィルターバー ===== */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .filter-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff;
+    }
+
+    /* ===== 注文カード ===== */
+    .order-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s;
+    }
+    .order-card.confirmed {
+      background: #F8F8F8;
+      border-color: #ddd;
+      opacity: 0.65;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .card-id {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+      word-break: break-all;
+    }
+    .card-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .card-recipe {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .card-blender {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .blend-list {
+      background: var(--gold-pale);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .blend-list-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .blend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .blend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .blend-item .sake-name { font-weight: 600; color: var(--text); }
+    .blend-item .sake-ml  { color: var(--gold); font-size: 11px; }
+
+    .label-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .label-tag.white-label {
+      background: #f0f0f0;
+      color: #555;
+      border: 1px solid #ccc;
+    }
+    .label-tag.black-label {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .confirmed-status {
+      font-size: 12px;
+      color: #27AE60;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-confirm {
+      padding: 10px 20px;
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      letter-spacing: 1px;
+    }
+    .btn-confirm:hover  { background: var(--gold-light); }
+    .btn-confirm:active { background: #8B6508; }
+    .btn-confirm:disabled {
+      background: #ccc;
+      cursor: default;
+    }
+
+    /* ===== 空状態 ===== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-text { font-size: 15px; }
+
+    /* ===== ローディング ===== */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--gold-pale);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== ログイン画面 ===== */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: var(--bg);
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .login-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .login-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      letter-spacing: 1px;
+    }
+    .login-card input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: 'Noto Serif JP', serif;
+      outline: none;
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: 4px;
+    }
+    .login-card input:focus { border-color: var(--gold); }
+    .login-error {
+      color: #C0392B;
+      font-size: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 14px rgba(184,134,11,0.3);
+    }
+    .btn-login:active { background: #8B6508; }
+
+    /* ===== アプリ画面（ログイン後）===== */
+    .app-screen { display: none; }
+
+    /* ===== 更新ボタン ===== */
+    .btn-refresh {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Noto Serif JP', serif;
+    }
+    .btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
+  </style>
+</head>
+<body>
+
+<!-- ===== ログイン画面 ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🍶 BREWERY</div>
+    <div class="login-subtitle">酒蔵スタッフ専用</div>
+    <input type="password" id="passwordInput" placeholder="パスワード"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="loginError">パスワードが正しくありません</div>
+    <button class="btn-login" onclick="doLogin()">ログイン</button>
+  </div>
+</div>
+
+<!-- ===== アプリ画面 ===== -->
+<div class="app-screen" id="appScreen">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div>
+      <div class="header-title">BREWERY ORDERS</div>
+      <div class="header-sub">受注管理 · 酒蔵スタッフ用</div>
+    </div>
+    <div class="header-actions">
+      <span class="badge" id="unconfirmedBadge">0</span>
+      <button class="btn-logout" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+
+  <!-- メイン -->
+  <div class="main">
+    <!-- フィルター -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter('all', this)">すべて</button>
+      <button class="filter-btn" onclick="setFilter('unconfirmed', this)">未確認のみ</button>
+      <button class="filter-btn" onclick="setFilter('confirmed', this)">確認済みのみ</button>
+      <button class="btn-refresh" onclick="loadOrders()" style="margin-left:auto">↻ 更新</button>
+    </div>
+
+    <div id="orderList">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p style="color:var(--text-muted);font-size:13px">読み込み中...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 設定 =====
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbwIEI_1cCKyxQZ0uNf1Gglv-KVVMvnC22ovisPUINlR7KzmbyBn6o0bfDLzunWQsz_n/exec';
+const PASSWORD = 'brewery2024';
+const SESSION_KEY = 'msw_brewery_auth';
+
+let allOrders = [];
+let currentFilter = 'all';
+
+// ===== ログイン =====
+function doLogin() {
+  const pw = document.getElementById('passwordInput').value;
+  if (pw === PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    loadOrders();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+// セッション確認
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    loadOrders();
+  }
+});
+
+// ===== 注文一覧取得 =====
+function loadOrders() {
+  document.getElementById('orderList').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="color:var(--text-muted);font-size:13px">読み込み中...</p>
+    </div>`;
+
+  fetch(`${GAS_URL}?action=getOrders&role=brewery`)
+    .then(r => r.json())
+    .then(data => {
+      allOrders = data.orders || [];
+      renderOrders();
+    })
+    .catch(err => {
+      document.getElementById('orderList').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">読み込みエラー<br><small>${err}</small></div></div>`;
+    });
+}
+
+// ===== フィルター設定 =====
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders();
+}
+
+// ===== 注文カード描画 =====
+function renderOrders() {
+  // 未確認件数
+  const unconfirmedCount = allOrders.filter(o => !o['確認済み']).length;
+  const badge = document.getElementById('unconfirmedBadge');
+  badge.textContent = unconfirmedCount;
+  badge.className = unconfirmedCount > 0 ? 'badge visible' : 'badge';
+
+  // フィルタリング
+  let filtered = allOrders;
+  if (currentFilter === 'unconfirmed') filtered = allOrders.filter(o => !o['確認済み']);
+  if (currentFilter === 'confirmed')   filtered = allOrders.filter(o =>  o['確認済み']);
+
+  if (filtered.length === 0) {
+    document.getElementById('orderList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">注文がありません</div>
+      </div>`;
+    return;
+  }
+
+  const html = filtered.map(order => renderCard(order)).join('');
+  document.getElementById('orderList').innerHTML = html;
+}
+
+function renderCard(order) {
+  const id        = esc(order['識別番号'] || '-');
+  const date      = esc(formatDate(order['受信日時']));
+  const recipe    = esc(order['レシピ名']   || '(レシピ名なし)');
+  const blender   = esc(order['ブレンダー名'] || '-');
+  const label     = order['ラベル色'] || '';
+  const confirmed = !!order['確認済み'];
+
+  // ブレンドアイテム
+  let blendHtml = '';
+  for (let i = 1; i <= 8; i++) {
+    const name = order[`酒${i}名`];
+    const ml   = order[`酒${i}ml`];
+    if (name) {
+      blendHtml += `<div class="blend-item">
+        <span class="sake-name">${esc(name)}</span>
+        <span class="sake-ml">${ml}ml</span>
+      </div>`;
+    }
+  }
+
+  // ラベルタグ
+  const labelClass = label === '黒ラベル' ? 'black-label' : 'white-label';
+  const labelHtml  = `<span class="label-tag ${labelClass}">${esc(label)}</span>`;
+
+  // 確認ボタン or 確認済みステータス
+  const footerHtml = confirmed
+    ? `<div class="confirmed-status">✓ 確認済み</div>`
+    : `<button class="btn-confirm" onclick="confirmOrder('${id}', this)">確認済みにする</button>`;
+
+  return `
+    <div class="order-card ${confirmed ? 'confirmed' : ''}" id="card-${id}">
+      <div class="card-head">
+        <div class="card-id">${id}</div>
+        <div class="card-date">${date}</div>
+      </div>
+      <div class="card-recipe">${recipe}</div>
+      <div class="card-blender">ブレンダー：${blender}</div>
+      <div class="blend-list">
+        <div class="blend-list-title">BLEND RECIPE</div>
+        <div class="blend-items">${blendHtml || '<span style="color:var(--text-muted);font-size:12px">データなし</span>'}</div>
+      </div>
+      ${labelHtml}
+      <div class="card-footer">${footerHtml}</div>
+    </div>`;
+}
+
+// ===== 確認済みに更新 =====
+function confirmOrder(id, btn) {
+  if (!confirm(`${id} を確認済みにしますか？`)) return;
+
+  btn.disabled  = true;
+  btn.textContent = '送信中...';
+
+  fetch(GAS_URL, {
+    method : 'POST',
+    mode   : 'cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body   : JSON.stringify({ action: 'updateStatus', id })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // ローカルデータ更新
+      const order = allOrders.find(o => o['識別番号'] === id);
+      if (order) order['確認済み'] = '✓';
+      // カードをグレーアウト
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.classList.add('confirmed');
+        card.querySelector('.card-footer').innerHTML =
+          `<div class="confirmed-status">✓ 確認済み</div>`;
+      }
+      // バッジ更新
+      const unconfirmedCount = allOrders.filter(o => !o['確認済み']).length;
+      const badge = document.getElementById('unconfirmedBadge');
+      badge.textContent = unconfirmedCount;
+      badge.className   = unconfirmedCount > 0 ? 'badge visible' : 'badge';
+    } else {
+      alert('更新エラー: ' + (data.error || '不明なエラー'));
+      btn.disabled    = false;
+      btn.textContent = '確認済みにする';
+    }
+  })
+  .catch(err => {
+    alert('通信エラー: ' + err);
+    btn.disabled    = false;
+    btn.textContent = '確認済みにする';
+  });
+}
+
+// ===== ユーティリティ =====
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(String(dateStr).replace(/\//g,'-'));
+  if (isNaN(d)) return String(dateStr);
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${d.getFullYear()}/${mm}/${dd} ${hh}:${mi}`;
+}
+</script>
+</body>
+</html>

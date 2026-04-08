@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MY SAKE WORLD - 管理画面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #B8860B;
+      --gold-light: #D4A820;
+      --gold-pale: #F5EDD5;
+      --bg: #F0EBE0;
+      --bg-card: #FFFFFF;
+      --text: #2C1F0E;
+      --text-muted: #7A6A52;
+      --border: #E2D5BB;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(184,134,11,0.08);
+    }
+
+    body {
+      font-family: 'Noto Serif JP', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== ヘッダー ===== */
+    .header {
+      background: var(--text);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-title { font-size: 16px; font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+    .header-sub   { font-size: 10px; color: #a89070; margin-top: 2px; }
+    .btn-logout {
+      background: transparent; border: 1px solid #a89070; color: #a89070;
+      padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif;
+    }
+    .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ===== タブ ===== */
+    .tab-bar {
+      background: var(--text);
+      display: flex;
+      padding: 0 24px;
+      border-top: 1px solid #3a2e1e;
+    }
+    .tab-btn {
+      padding: 12px 20px; border: none; background: transparent;
+      color: #a89070; font-family: 'Noto Serif JP', serif; font-size: 13px;
+      cursor: pointer; letter-spacing: 1px; border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ===== メイン ===== */
+    .main { padding: 20px 16px 48px; max-width: 1200px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ===== ツールバー ===== */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+    }
+    .toolbar-title { font-size: 14px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; }
+    .btn-ss-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--gold); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 13px;
+      text-decoration: none; cursor: pointer; font-weight: 600; transition: background 0.2s;
+    }
+    .btn-ss-link:hover { background: var(--gold-light); }
+    .btn-refresh {
+      padding: 8px 14px; background: transparent; border: 1px solid var(--border);
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 12px;
+      color: var(--text-muted); cursor: pointer;
+    }
+    .btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ===== テーブル ===== */
+    .table-wrap {
+      overflow-x: auto; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+    thead tr { background: var(--text); color: var(--gold); }
+    thead th { padding: 12px 14px; text-align: left; font-weight: 600; letter-spacing: 1px; font-size: 11px; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--gold-pale); }
+    tbody tr.confirmed-row { background: #f8f8f8; color: #aaa; }
+    tbody td { padding: 11px 14px; white-space: nowrap; vertical-align: middle; }
+    .blend-cell { white-space: normal; min-width: 180px; }
+    .blend-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .blend-pill {
+      background: var(--gold-pale); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2px 8px; font-size: 11px; white-space: nowrap;
+    }
+    .label-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .label-badge.white-l { background: #f0f0f0; color: #555; border: 1px solid #ccc; }
+    .label-badge.black-l { background: #1a1a1a; color: #fff; }
+    .label-badge.custom-l { background: var(--gold-pale); color: var(--gold); border: 1px solid var(--gold); }
+    .confirmed-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .confirmed-badge.done    { background: #E8F8EE; color: #27AE60; }
+    .confirmed-badge.pending { background: #FEF3E8; color: #E67E22; }
+
+    /* ===== 空状態 / ローディング ===== */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon  { font-size: 40px; margin-bottom: 12px; }
+    .loading { text-align: center; padding: 40px 20px; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--gold-pale);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== フォーム管理グリッド ===== */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media(max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
+
+    /* 2列分の幅を占めるカード */
+    .form-grid .span-2 { grid-column: 1 / -1; }
+
+    /* ===== 設定カード ===== */
+    .settings-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .settings-card-header {
+      background: var(--text);
+      color: var(--gold);
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-card-body { padding: 16px; }
+
+    /* ===== リスト行 ===== */
+    .list-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-item:hover { background: var(--gold-pale); }
+    .list-item-name { font-size: 14px; font-weight: 600; }
+    .list-item-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+    .btn-delete-item {
+      padding: 5px 12px; background: transparent; border: 1px solid #E8D0D0;
+      color: #C0392B; border-radius: 6px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif; transition: all 0.15s;
+    }
+    .btn-delete-item:hover { background: #C0392B; color: #fff; border-color: #C0392B; }
+
+    .btn-rename-item {
+      padding: 5px 10px; background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 6px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif; transition: all 0.15s;
+    }
+    .btn-rename-item:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* インライン編集行 */
+    .list-item-edit {
+      display: none; flex-direction: column; gap: 6px;
+      padding: 8px 14px; border-bottom: 1px solid var(--border);
+      background: var(--gold-pale);
+    }
+    .list-item-edit.open { display: flex; }
+    .list-item-edit input {
+      width: 100%; padding: 8px 10px; border: 1.5px solid var(--gold);
+      border-radius: 6px; font-family: 'Noto Serif JP', serif; font-size: 14px; outline: none;
+    }
+    .list-item-edit-actions { display: flex; gap: 6px; }
+    .btn-save-rename {
+      padding: 6px 14px; background: var(--gold); color: #fff; border: none;
+      border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Noto Serif JP', serif;
+    }
+    .btn-cancel-rename {
+      padding: 6px 12px; background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 6px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif;
+    }
+
+    /* ===== 追加行 ===== */
+    .add-row {
+      display: flex; gap: 8px; padding: 12px 14px;
+      border-top: 1px solid var(--border); background: #FAFAF8;
+    }
+    .add-row input {
+      flex: 1; padding: 9px 12px; border: 1.5px solid var(--border);
+      border-radius: 7px; font-family: 'Noto Serif JP', serif; font-size: 14px; outline: none;
+    }
+    .add-row input:focus { border-color: var(--gold); }
+    .btn-add-item {
+      padding: 9px 16px; background: var(--gold); color: #fff; border: none;
+      border-radius: 7px; font-family: 'Noto Serif JP', serif; font-size: 13px;
+      font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s;
+    }
+    .btn-add-item:hover { background: var(--gold-light); }
+
+    /* ===== インライン設定（数値・セレクト）===== */
+    .inline-setting {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;
+    }
+    .inline-setting input[type="number"] {
+      width: 90px; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 7px; font-family: 'Noto Serif JP', serif; font-size: 16px;
+      font-weight: 700; text-align: center; outline: none; color: var(--gold);
+    }
+    .inline-setting input[type="number"]:focus { border-color: var(--gold); }
+    .inline-setting select {
+      padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 7px;
+      font-family: 'Noto Serif JP', serif; font-size: 15px; outline: none;
+      background: #fff; color: var(--text); -webkit-appearance: none; cursor: pointer;
+    }
+    .inline-setting select:focus { border-color: var(--gold); }
+    .inline-setting span { font-size: 14px; color: var(--text-muted); }
+    .btn-save-inline {
+      padding: 10px 20px; background: var(--gold); color: #fff; border: none;
+      border-radius: 7px; font-family: 'Noto Serif JP', serif; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-save-inline:hover { background: var(--gold-light); }
+
+    /* ===== テキストエリア ===== */
+    .settings-card-body textarea {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 14px;
+      line-height: 1.7; color: var(--text); resize: vertical; outline: none;
+      margin-bottom: 10px;
+    }
+    .settings-card-body textarea:focus { border-color: var(--gold); }
+    .btn-save-block {
+      display: block; width: 100%; padding: 12px; background: var(--gold); color: #fff;
+      border: none; border-radius: 8px; font-family: 'Noto Serif JP', serif;
+      font-size: 14px; font-weight: 600; cursor: pointer; letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+    .btn-save-block:hover { background: var(--gold-light); }
+
+    /* ===== 保存メッセージ ===== */
+    .save-msg {
+      font-size: 12px; margin-top: 6px; padding: 7px 10px; border-radius: 6px;
+      display: none;
+    }
+    .save-msg.success { background: #E8F8EE; color: #27AE60; display: block; }
+    .save-msg.error   { background: #FEF3E8; color: #E74C3C; display: block; }
+
+    /* ===== バッジ ===== */
+    .count-badge {
+      background: var(--gold); color: #fff; border-radius: 12px;
+      padding: 2px 8px; font-size: 11px; margin-left: auto;
+    }
+
+    /* ===== ログイン画面 ===== */
+    .login-screen {
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 36px 28px; width: 100%; max-width: 360px;
+      box-shadow: var(--shadow); text-align: center;
+    }
+    .login-logo   { font-size: 20px; font-weight: 700; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
+    .login-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; letter-spacing: 1px; }
+    .login-card input[type="password"] {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 16px; font-family: 'Noto Serif JP', serif;
+      outline: none; margin-bottom: 14px; text-align: center; letter-spacing: 4px;
+    }
+    .login-card input:focus { border-color: var(--gold); }
+    .login-error { color: #C0392B; font-size: 12px; margin-bottom: 12px; display: none; }
+    .btn-login {
+      width: 100%; padding: 14px; background: var(--gold); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 2px;
+    }
+    .btn-login:active { background: #8B6508; }
+
+    .app-screen { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ===== ログイン画面 ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">⚙️ ADMIN</div>
+    <div class="login-subtitle">管理者専用画面</div>
+    <input type="password" id="passwordInput" placeholder="パスワード"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="loginError">パスワードが正しくありません</div>
+    <button class="btn-login" onclick="doLogin()">ログイン</button>
+  </div>
+</div>
+
+<!-- ===== アプリ画面 ===== -->
+<div class="app-screen" id="appScreen">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div>
+      <div class="header-title">MY SAKE WORLD - ADMIN</div>
+      <div class="header-sub">管理者コンソール</div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">ログアウト</button>
+  </div>
+
+  <!-- タブ -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('Orders', this)">注文一覧</button>
+    <button class="tab-btn" onclick="switchTab('Form', this)">フォーム管理</button>
+  </div>
+
+  <!-- ===== メイン ===== -->
+  <div class="main">
+
+    <!-- ========== 注文一覧タブ ========== -->
+    <div class="tab-panel active" id="panelOrders">
+      <div class="toolbar">
+        <div class="toolbar-title" id="ordersCount">読み込み中...</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-refresh" onclick="loadOrders()">↻ 更新</button>
+          <a class="btn-ss-link"
+            href="https://docs.google.com/spreadsheets/d/1zvOH6pB2i3NLn0_15IzjrHmDHIJbI2j1dPQ1aA3UYMw/edit"
+            target="_blank" rel="noopener">
+            📊 スプレッドシートを開く
+          </a>
+        </div>
+      </div>
+      <div id="ordersTableWrap">
+        <div class="loading"><div class="spinner"></div><p style="color:var(--text-muted);font-size:13px">読み込み中...</p></div>
+      </div>
+    </div>
+
+    <!-- ========== フォーム管理タブ ========== -->
+    <div class="tab-panel" id="panelForm">
+      <div class="toolbar">
+        <div class="toolbar-title">フォーム設定管理</div>
+        <button class="btn-refresh" onclick="loadFormSettingsAdmin()">↻ 更新</button>
+      </div>
+
+      <div class="form-grid">
+
+        <!-- ① 酒リスト -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            ① 酒リスト
+            <span class="count-badge" id="sakeCountBadge">0</span>
+          </div>
+          <div id="sakeListBody">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+          <div class="add-row">
+            <input type="text" id="newSakeName" placeholder="例：山廃仕込み"
+              maxlength="50" onkeydown="if(event.key==='Enter')addSake()">
+            <button class="btn-add-item" onclick="addSake()">追加</button>
+          </div>
+          <div class="save-msg" id="msgSake" style="margin:0 14px 12px"></div>
+        </div>
+
+        <!-- ② ラベル色選択肢 -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            ② ラベルの色選択肢
+            <span class="count-badge" id="labelCountBadge">0</span>
+          </div>
+          <div id="labelOptionsList">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+          <div class="add-row">
+            <input type="text" id="newLabelName" placeholder="例：赤ラベル"
+              maxlength="20" onkeydown="if(event.key==='Enter')addLabelOption()">
+            <button class="btn-add-item" onclick="addLabelOption()">追加</button>
+          </div>
+          <div class="save-msg" id="msgLabel" style="margin:0 14px 12px"></div>
+        </div>
+
+        <!-- ③ 合計ml目標値 -->
+        <div class="settings-card">
+          <div class="settings-card-header">③ 合計ml目標値</div>
+          <div class="settings-card-body">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+              お客さんフォームの「ブレンド配合」に表示される目標値です。
+            </p>
+            <div class="inline-setting">
+              <input type="number" id="targetMlInput" value="40" min="1" max="9999" step="5">
+              <span>ml</span>
+              <button class="btn-save-inline" onclick="saveTargetMl()">保存</button>
+            </div>
+            <div class="save-msg" id="msgTargetMl"></div>
+          </div>
+        </div>
+
+        <!-- ④ ブレンド最大行数 -->
+        <div class="settings-card">
+          <div class="settings-card-header">④ ブレンド最大行数</div>
+          <div class="settings-card-body">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+              お客さんが追加できるお酒の種類の上限数です（1〜10）。
+            </p>
+            <div class="inline-setting">
+              <select id="maxRowsSelect">
+                <option value="1">1種</option>
+                <option value="2">2種</option>
+                <option value="3">3種</option>
+                <option value="4">4種</option>
+                <option value="5">5種</option>
+                <option value="6">6種</option>
+                <option value="7">7種</option>
+                <option value="8" selected>8種</option>
+                <option value="9">9種</option>
+                <option value="10">10種</option>
+              </select>
+              <button class="btn-save-inline" onclick="saveMaxRows()">保存</button>
+            </div>
+            <div class="save-msg" id="msgMaxRows"></div>
+          </div>
+        </div>
+
+        <!-- ⑤ 案内文 -->
+        <div class="settings-card span-2">
+          <div class="settings-card-header">⑤ 案内文（STEP①上部に表示）</div>
+          <div class="settings-card-body">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">
+              お客さん用フォームのSTEP①の上部に表示される案内文です。空欄にすると非表示になります。
+            </p>
+            <textarea id="guideTextInput" rows="3"
+              placeholder="例：お好みのお酒を組み合わせてオリジナルブレンドを作りましょう"></textarea>
+            <button class="btn-save-block" onclick="saveGuideText()">保存する</button>
+            <div class="save-msg" id="msgGuideText"></div>
+          </div>
+        </div>
+
+      </div><!-- /form-grid -->
+    </div><!-- /panelForm -->
+
+  </div><!-- /main -->
+</div><!-- /appScreen -->
+
+<script>
+// ===== 設定 =====
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwIEI_1cCKyxQZ0uNf1Gglv-KVVMvnC22ovisPUINlR7KzmbyBn6o0bfDLzunWQsz_n/exec';
+const PASSWORD   = 'admin2024';
+const SESSION_KEY = 'msw_admin_auth';
+
+// ラベル選択肢はメモリ管理（追加・削除後にまとめて保存）
+let currentLabelOptions = [];
+
+// ===== ログイン =====
+function doLogin() {
+  const pw = document.getElementById('passwordInput').value;
+  if (pw === PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display   = 'block';
+    loadOrders();
+    loadFormSettingsAdmin();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display   = 'block';
+    loadOrders();
+    loadFormSettingsAdmin();
+  }
+});
+
+// ===== タブ切替 =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel' + name).classList.add('active');
+}
+
+// ===== GASへPOST共通処理 =====
+function gasPost(body) {
+  return fetch(GAS_URL, {
+    method : 'POST',
+    mode   : 'cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body   : JSON.stringify(body)
+  }).then(r => r.json());
+}
+
+// ===== 注文一覧取得 =====
+function loadOrders() {
+  document.getElementById('ordersTableWrap').innerHTML =
+    `<div class="loading"><div class="spinner"></div><p style="color:var(--text-muted);font-size:13px">読み込み中...</p></div>`;
+  document.getElementById('ordersCount').textContent = '読み込み中...';
+
+  fetch(`${GAS_URL}?action=getOrders&role=admin`)
+    .then(r => r.json())
+    .then(data => {
+      const orders = data.orders || [];
+      document.getElementById('ordersCount').textContent = `全 ${orders.length} 件`;
+      renderOrdersTable(orders);
+    })
+    .catch(err => {
+      document.getElementById('ordersTableWrap').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><div>読み込みエラー: ${esc(String(err))}</div></div>`;
+    });
+}
+
+function renderOrdersTable(orders) {
+  if (orders.length === 0) {
+    document.getElementById('ordersTableWrap').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">📋</div><div>注文がありません</div></div>`;
+    return;
+  }
+
+  const rows = orders.map(o => {
+    let blendPills = '';
+    for (let i = 1; i <= 8; i++) {
+      const name = o[`酒${i}名`];
+      const ml   = o[`酒${i}ml`];
+      if (name) blendPills += `<span class="blend-pill">${esc(name)} ${ml}ml</span>`;
+    }
+    const labelStr   = esc(o['ラベル色'] || '-');
+    const labelClass = o['ラベル色'] === '黒ラベル' ? 'black-l' : (o['ラベル色'] === '白ラベル' ? 'white-l' : 'custom-l');
+    const confirmedStr = o['確認済み']
+      ? '<span class="confirmed-badge done">✓ 確認済み</span>'
+      : '<span class="confirmed-badge pending">未確認</span>';
+
+    return `<tr class="${o['確認済み'] ? 'confirmed-row' : ''}">
+      <td>${esc(o['識別番号'] || '-')}</td>
+      <td>${esc(o['受信日時']  || '-')}</td>
+      <td style="font-weight:600">${esc(o['レシピ名']   || '-')}</td>
+      <td>${esc(o['ブレンダー名'] || '-')}</td>
+      <td class="blend-cell"><div class="blend-pills">${blendPills || '-'}</div></td>
+      <td><span class="label-badge ${labelClass}">${labelStr}</span></td>
+      <td>${esc(o['お名前'] || '-')}</td>
+      <td>${esc(o['メール']  || '-')}</td>
+      <td>${esc(o['電話']   || '-')}</td>
+      <td>${esc(o['配送先住所'] || '-')}</td>
+      <td>${confirmedStr}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ordersTableWrap').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>識別番号</th><th>受信日時</th><th>レシピ名</th><th>ブレンダー名</th>
+          <th>ブレンド内容</th><th>ラベル色</th><th>お名前</th>
+          <th>メール</th><th>電話</th><th>配送先住所</th><th>確認状況</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ===== フォーム設定を読み込んでUIに反映 =====
+function loadFormSettingsAdmin() {
+  Promise.all([
+    fetch(`${GAS_URL}?action=getSakeList`).then(r => r.json()),
+    fetch(`${GAS_URL}?action=getFormSettings`).then(r => r.json())
+  ])
+  .then(([sakeData, settings]) => {
+    renderSakeList(sakeData.list || []);
+    currentLabelOptions = settings.labelOptions || ['白ラベル', '黒ラベル'];
+    renderLabelOptions();
+    // 数値・テキスト設定を反映
+    document.getElementById('targetMlInput').value = settings.targetMl || 40;
+    const maxSel = document.getElementById('maxRowsSelect');
+    maxSel.value = String(settings.maxRows || 8);
+    document.getElementById('guideTextInput').value = settings.guideText || '';
+  })
+  .catch(err => console.error('フォーム設定読込エラー:', err));
+}
+
+// ===== ① 酒リスト管理 =====
+function renderSakeList(list) {
+  document.getElementById('sakeCountBadge').textContent = list.length;
+  if (list.length === 0) {
+    document.getElementById('sakeListBody').innerHTML =
+      `<div class="empty-state" style="padding:30px"><div>リストが空です</div></div>`;
+    return;
+  }
+  document.getElementById('sakeListBody').innerHTML = list.map(name =>
+    `<div class="list-item">
+      <span class="list-item-name">🍶 ${esc(name)}</span>
+      <div class="list-item-actions">
+        <button class="btn-delete-item" onclick="deleteSake('${esc(name)}', this)">削除</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function addSake() {
+  const input = document.getElementById('newSakeName');
+  const name  = input.value.trim();
+  if (!name) { showMsg('msgSake', 'お酒の名前を入力してください', 'error'); return; }
+
+  gasPost({ action: 'addSake', name })
+    .then(data => {
+      if (data.success) {
+        input.value = '';
+        showMsg('msgSake', `「${name}」を追加しました`, 'success');
+        loadFormSettingsAdmin();
+      } else {
+        showMsg('msgSake', data.error || '追加に失敗しました', 'error');
+      }
+    })
+    .catch(err => showMsg('msgSake', '通信エラー: ' + err, 'error'));
+}
+
+function deleteSake(name, btn) {
+  if (!confirm(`「${name}」を削除しますか？`)) return;
+  btn.disabled = true; btn.textContent = '削除中...';
+
+  gasPost({ action: 'deleteSake', name })
+    .then(data => {
+      if (data.success) {
+        showMsg('msgSake', `「${name}」を削除しました`, 'success');
+        loadFormSettingsAdmin();
+      } else {
+        showMsg('msgSake', data.error || '削除に失敗しました', 'error');
+        btn.disabled = false; btn.textContent = '削除';
+      }
+    })
+    .catch(err => {
+      showMsg('msgSake', '通信エラー: ' + err, 'error');
+      btn.disabled = false; btn.textContent = '削除';
+    });
+}
+
+// ===== ② ラベル色選択肢管理 =====
+function renderLabelOptions() {
+  const list = currentLabelOptions;
+  document.getElementById('labelCountBadge').textContent = list.length;
+
+  if (list.length === 0) {
+    document.getElementById('labelOptionsList').innerHTML =
+      `<div class="empty-state" style="padding:30px"><div>選択肢がありません</div></div>`;
+    return;
+  }
+
+  document.getElementById('labelOptionsList').innerHTML = list.map((name, idx) =>
+    `<div id="label-row-${idx}">
+      <div class="list-item">
+        <span class="list-item-name">🏷 ${esc(name)}</span>
+        <div class="list-item-actions">
+          <button class="btn-rename-item" onclick="openRenameLabel(${idx})">名前変更</button>
+          <button class="btn-delete-item" onclick="deleteLabelOption(${idx})">削除</button>
+        </div>
+      </div>
+      <div class="list-item-edit" id="label-edit-${idx}">
+        <input type="text" id="label-edit-input-${idx}" value="${esc(name)}" maxlength="20">
+        <div class="list-item-edit-actions">
+          <button class="btn-save-rename" onclick="saveRenameLabel(${idx})">保存</button>
+          <button class="btn-cancel-rename" onclick="closeRenameLabel(${idx})">キャンセル</button>
+        </div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function addLabelOption() {
+  const input = document.getElementById('newLabelName');
+  const name  = input.value.trim();
+  if (!name) { showMsg('msgLabel', '選択肢の名前を入力してください', 'error'); return; }
+  if (currentLabelOptions.includes(name)) { showMsg('msgLabel', '同じ名前が既にあります', 'error'); return; }
+
+  currentLabelOptions.push(name);
+  input.value = '';
+  saveLabelOptions('msgLabel', `「${name}」を追加しました`);
+}
+
+function deleteLabelOption(idx) {
+  const name = currentLabelOptions[idx];
+  if (!confirm(`「${name}」を削除しますか？`)) return;
+  currentLabelOptions.splice(idx, 1);
+  saveLabelOptions('msgLabel', `「${name}」を削除しました`);
+}
+
+function openRenameLabel(idx) {
+  document.getElementById(`label-edit-${idx}`).classList.add('open');
+  document.getElementById(`label-edit-input-${idx}`).focus();
+}
+
+function closeRenameLabel(idx) {
+  document.getElementById(`label-edit-${idx}`).classList.remove('open');
+}
+
+function saveRenameLabel(idx) {
+  const newName = document.getElementById(`label-edit-input-${idx}`).value.trim();
+  if (!newName) { showMsg('msgLabel', '名前を入力してください', 'error'); return; }
+  const oldName = currentLabelOptions[idx];
+  if (newName === oldName) { closeRenameLabel(idx); return; }
+  if (currentLabelOptions.includes(newName)) { showMsg('msgLabel', '同じ名前が既にあります', 'error'); return; }
+
+  currentLabelOptions[idx] = newName;
+  saveLabelOptions('msgLabel', `「${oldName}」→「${newName}」に変更しました`);
+}
+
+// ラベル選択肢をGASに保存（配列全体をカンマ区切りで保存）
+function saveLabelOptions(msgId, successText) {
+  const value = currentLabelOptions.join(',');
+  gasPost({ action: 'updateFormSettings', key: 'label_options', value })
+    .then(data => {
+      if (data.success) {
+        renderLabelOptions();
+        showMsg(msgId, successText, 'success');
+      } else {
+        showMsg(msgId, data.error || '保存に失敗しました', 'error');
+        loadFormSettingsAdmin(); // ローカルの変更を元に戻す
+      }
+    })
+    .catch(err => {
+      showMsg(msgId, '通信エラー: ' + err, 'error');
+      loadFormSettingsAdmin();
+    });
+}
+
+// ===== ③ 合計ml目標値 =====
+function saveTargetMl() {
+  const val = parseInt(document.getElementById('targetMlInput').value);
+  if (isNaN(val) || val < 1) { showMsg('msgTargetMl', '1以上の数値を入力してください', 'error'); return; }
+
+  gasPost({ action: 'updateFormSettings', key: 'target_ml', value: String(val) })
+    .then(data => {
+      if (data.success) showMsg('msgTargetMl', `目標値を ${val}ml に保存しました`, 'success');
+      else showMsg('msgTargetMl', data.error || '保存に失敗しました', 'error');
+    })
+    .catch(err => showMsg('msgTargetMl', '通信エラー: ' + err, 'error'));
+}
+
+// ===== ④ 最大行数 =====
+function saveMaxRows() {
+  const val = parseInt(document.getElementById('maxRowsSelect').value);
+  gasPost({ action: 'updateFormSettings', key: 'max_rows', value: String(val) })
+    .then(data => {
+      if (data.success) showMsg('msgMaxRows', `最大行数を ${val}種 に保存しました`, 'success');
+      else showMsg('msgMaxRows', data.error || '保存に失敗しました', 'error');
+    })
+    .catch(err => showMsg('msgMaxRows', '通信エラー: ' + err, 'error'));
+}
+
+// ===== ⑤ 案内文 =====
+function saveGuideText() {
+  const val = document.getElementById('guideTextInput').value.trim();
+  gasPost({ action: 'updateFormSettings', key: 'guide_text', value: val })
+    .then(data => {
+      if (data.success) showMsg('msgGuideText', val ? '案内文を保存しました' : '案内文を空欄（非表示）に設定しました', 'success');
+      else showMsg('msgGuideText', data.error || '保存に失敗しました', 'error');
+    })
+    .catch(err => showMsg('msgGuideText', '通信エラー: ' + err, 'error'));
+}
+
+// ===== メッセージ表示（3秒で消える）=====
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className   = `save-msg ${type}`;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.className = 'save-msg'; }, 3500);
+}
+
+// ===== HTML エスケープ =====
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

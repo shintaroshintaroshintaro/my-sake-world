@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MY SAKE WORLD - QRコード印刷用</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ===== 印刷設定 ===== */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      background: #E8E0D0; /* 画面表示時の背景 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* ===== A4用紙 ===== */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: #FAF8F4;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* 印刷時は影なし */
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    }
+
+    /* ===== 外枠ボーダー ===== */
+    .outer-border {
+      position: absolute;
+      inset: 10mm;
+      border: 1.5px solid #B8860B;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .inner-border {
+      position: absolute;
+      inset: 11.5mm;
+      border: 0.5px solid #D4A820;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ===== 四隅の装飾 ===== */
+    .corner {
+      position: absolute;
+      width: 12mm;
+      height: 12mm;
+      z-index: 2;
+    }
+    .corner::before,
+    .corner::after {
+      content: '';
+      position: absolute;
+      background: #B8860B;
+    }
+    .corner::before { width: 100%; height: 1.5px; top: 0; left: 0; }
+    .corner::after  { width: 1.5px; height: 100%; top: 0; left: 0; }
+
+    .corner.tl { top: 8mm;  left: 8mm; }
+    .corner.tr { top: 8mm;  right: 8mm; transform: scaleX(-1); }
+    .corner.bl { bottom: 8mm; left: 8mm; transform: scaleY(-1); }
+    .corner.br { bottom: 8mm; right: 8mm; transform: scale(-1); }
+
+    /* ===== コンテンツ領域 ===== */
+    .content {
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18mm 20mm 14mm;
+    }
+
+    /* ===== ヘッダー飾り ===== */
+    .deco-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6mm;
+      width: 100%;
+      justify-content: center;
+    }
+    .deco-line::before,
+    .deco-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #B8860B);
+    }
+    .deco-line::after {
+      background: linear-gradient(to left, transparent, #B8860B);
+    }
+    .deco-diamond {
+      width: 6px;
+      height: 6px;
+      background: #B8860B;
+      transform: rotate(45deg);
+    }
+
+    /* ===== サブタイトル ===== */
+    .subtitle-en {
+      font-size: 9pt;
+      letter-spacing: 5px;
+      color: #B8860B;
+      text-align: center;
+      margin-bottom: 3mm;
+    }
+
+    /* ===== メインロゴ ===== */
+    .logo {
+      text-align: center;
+      margin-bottom: 4mm;
+    }
+    .logo-my    { font-size: 14pt; font-weight: 300; color: #2C1F0E; letter-spacing: 4px; }
+    .logo-sake  {
+      font-size: 42pt;
+      font-weight: 700;
+      color: #2C1F0E;
+      letter-spacing: 6px;
+      line-height: 1;
+      display: block;
+    }
+    .logo-sake span { color: #B8860B; }
+    .logo-world { font-size: 14pt; font-weight: 300; color: #2C1F0E; letter-spacing: 8px; }
+
+    /* ===== 中央区切り ===== */
+    .center-divider {
+      width: 60mm;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #B8860B 30%, #B8860B 70%, transparent);
+      margin: 5mm 0;
+      position: relative;
+    }
+    .center-divider::before {
+      content: '🍶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14pt;
+      background: #FAF8F4;
+      padding: 0 3mm;
+      line-height: 1;
+    }
+
+    /* ===== 説明テキスト ===== */
+    .description {
+      text-align: center;
+      margin-bottom: 6mm;
+    }
+    .description-main {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #2C1F0E;
+      letter-spacing: 2px;
+      line-height: 1.6;
+      margin-bottom: 2mm;
+    }
+    .description-sub {
+      font-size: 9pt;
+      color: #7A6A52;
+      letter-spacing: 2px;
+      line-height: 1.8;
+    }
+
+    /* ===== QRコードエリア ===== */
+    .qr-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4mm;
+      margin-bottom: 6mm;
+    }
+    .qr-outer-frame {
+      padding: 5mm;
+      background: #FFFFFF;
+      border: 1.5px solid #B8860B;
+      border-radius: 4mm;
+      position: relative;
+      box-shadow: 0 2px 12px rgba(184,134,11,0.12);
+    }
+    /* QRコードの四隅マーク */
+    .qr-outer-frame::before,
+    .qr-outer-frame::after {
+      content: '';
+      position: absolute;
+    }
+    #qrcode {
+      display: block;
+      line-height: 0; /* img の下余白を消す */
+    }
+    #qrcode img,
+    #qrcode canvas {
+      display: block;
+    }
+
+    /* ===== URL表示 ===== */
+    .qr-url {
+      font-size: 8pt;
+      color: #7A6A52;
+      letter-spacing: 0.5px;
+      background: #F5EDD5;
+      border: 1px solid #E2D5BB;
+      border-radius: 2mm;
+      padding: 2mm 5mm;
+    }
+
+    /* ===== 手順テキスト ===== */
+    .steps {
+      display: flex;
+      gap: 5mm;
+      justify-content: center;
+      margin-bottom: 6mm;
+      width: 100%;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5mm;
+      flex: 1;
+      max-width: 40mm;
+    }
+    .step-num {
+      width: 7mm;
+      height: 7mm;
+      border-radius: 50%;
+      background: #2C1F0E;
+      color: #B8860B;
+      font-size: 9pt;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-text {
+      font-size: 8pt;
+      color: #2C1F0E;
+      text-align: center;
+      line-height: 1.6;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== 注意書き ===== */
+    .notice {
+      font-size: 7.5pt;
+      color: #9A8A72;
+      text-align: center;
+      letter-spacing: 1px;
+      line-height: 1.8;
+      border-top: 1px solid #E2D5BB;
+      padding-top: 4mm;
+      width: 100%;
+      margin-top: auto;
+    }
+
+    /* ===== 印刷ボタン（画面表示のみ）===== */
+    .print-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 24px;
+      background: #B8860B;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 16px rgba(184,134,11,0.4);
+      transition: background 0.2s;
+      z-index: 100;
+    }
+    .print-btn:hover { background: #8B6508; }
+
+    /* ===== 印刷時スタイル ===== */
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+        min-height: auto;
+      }
+      .page {
+        box-shadow: none;
+        width: 210mm;
+        min-height: 297mm;
+        page-break-after: avoid;
+      }
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 印刷ボタン（画面のみ表示）-->
+<button class="print-btn" onclick="window.print()">🖨 印刷する</button>
+
+<!-- ===== A4ページ ===== -->
+<div class="page">
+
+  <!-- 外枠・内枠 -->
+  <div class="outer-border"></div>
+  <div class="inner-border"></div>
+
+  <!-- 四隅の装飾 -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <!-- コンテンツ -->
+  <div class="content">
+
+    <!-- 上部装飾ライン -->
+    <div class="deco-line">
+      <div class="deco-diamond"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-diamond"></div>
+    </div>
+
+    <!-- サブタイトル -->
+    <div class="subtitle-en">BLEND YOUR OWN SAKE</div>
+
+    <!-- ロゴ -->
+    <div class="logo">
+      <div class="logo-my">MY</div>
+      <span class="logo-sake">SA<span>KE</span></span>
+      <div class="logo-world">W O R L D</div>
+    </div>
+
+    <!-- 区切り -->
+    <div class="center-divider"></div>
+
+    <!-- 説明文 -->
+    <div class="description">
+      <div class="description-main">
+        こちらからレシピを<br>入力してください
+      </div>
+      <div class="description-sub">
+        QRコードを読み取ってお好みのブレンドレシピをお作りください
+      </div>
+    </div>
+
+    <!-- QRコード -->
+    <div class="qr-wrapper">
+      <div class="qr-outer-frame">
+        <div id="qrcode"></div>
+      </div>
+      <div class="qr-url">https://deluxe-bonbon-ac0f78.netlify.app/</div>
+    </div>
+
+    <!-- 手順 -->
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text">QRコードを<br>スキャン</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text">お好みの<br>お酒を選択</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text">レシピを<br>送信</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-text">番号を<br>スタッフへ</div>
+      </div>
+    </div>
+
+    <!-- 注意書き -->
+    <div class="notice">
+      ご不明な点はスタッフまでお気軽にお声がけください<br>
+      MY SAKE WORLD ブレンド体験
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /page -->
+
+<script>
+// QRコードを生成
+window.addEventListener('DOMContentLoaded', () => {
+  new QRCode(document.getElementById('qrcode'), {
+    text       : 'https://deluxe-bonbon-ac0f78.netlify.app/',
+    width      : 220,
+    height     : 220,
+    colorDark  : '#2C1F0E',
+    colorLight : '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.H  // エラー訂正レベル高（汚れに強い）
+  });
+});
+</script>
+</body>
+</html>
