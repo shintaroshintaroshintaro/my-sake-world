@@ -456,6 +456,30 @@
           </div>
         </div>
 
+        <!-- ⑥ ブレンダーID管理 -->
+        <div class="settings-card span-2">
+          <div class="settings-card-header">⑥ ブレンダーID管理</div>
+          <div class="settings-card-body">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+              来店者のレシピ送信・追加注文ごとに自動で発番される番号を管理します。
+            </p>
+            <div style="margin-bottom:14px;padding:12px 16px;background:var(--gold-pale);border:1px solid var(--gold);border-radius:8px">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px">次に発番される番号</div>
+              <div style="font-size:28px;font-weight:700;color:var(--gold)" id="nextBlenderIdDisplay">—</div>
+            </div>
+            <div class="inline-setting">
+              <input type="number" id="blenderIdCounterInput" min="0" step="1"
+                placeholder="開始番号" style="width:120px">
+              <span style="font-size:13px;color:var(--text-muted)">の次から発番</span>
+              <button class="btn-save-inline" onclick="saveBlenderIdCounter()">更新する</button>
+            </div>
+            <p style="font-size:11px;color:#C0392B;margin-top:8px">
+              ※ 現在の最大IDより小さい数字に設定すると番号が重複します
+            </p>
+            <div class="save-msg" id="msgBlenderId"></div>
+          </div>
+        </div>
+
       </div><!-- /form-grid -->
     </div><!-- /panelForm -->
 
@@ -464,7 +488,7 @@
 
 <script>
 // ===== 設定 =====
-const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwIEI_1cCKyxQZ0uNf1Gglv-KVVMvnC22ovisPUINlR7KzmbyBn6o0bfDLzunWQsz_n/exec';
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
 const PASSWORD   = 'admin2024';
 const SESSION_KEY = 'msw_admin_auth';
 
@@ -559,7 +583,7 @@ function renderOrdersTable(orders) {
       : '<span class="confirmed-badge pending">未確認</span>';
 
     return `<tr class="${o['確認済み'] ? 'confirmed-row' : ''}">
-      <td>${esc(o['識別番号'] || '-')}</td>
+      <td>${esc(o['ブレンダーID'] || '-')}</td>
       <td>${esc(o['受信日時']  || '-')}</td>
       <td style="font-weight:600">${esc(o['レシピ名']   || '-')}</td>
       <td>${esc(o['ブレンダー名'] || '-')}</td>
@@ -577,7 +601,7 @@ function renderOrdersTable(orders) {
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>識別番号</th><th>受信日時</th><th>レシピ名</th><th>ブレンダー名</th>
+          <th>ブレンダーID</th><th>受信日時</th><th>レシピ名</th><th>ブレンダー名</th>
           <th>ブレンド内容</th><th>ラベル色</th><th>お名前</th>
           <th>メール</th><th>電話</th><th>配送先住所</th><th>確認状況</th>
         </tr></thead>
@@ -603,6 +627,9 @@ function loadFormSettingsAdmin() {
     document.getElementById('guideTextInput').value = settings.guideText || '';
   })
   .catch(err => console.error('フォーム設定読込エラー:', err));
+
+  // ブレンダーIDカウンターを別途取得
+  loadBlenderIdCounter();
 }
 
 // ===== ① 酒リスト管理 =====
@@ -782,6 +809,36 @@ function saveGuideText() {
       else showMsg('msgGuideText', data.error || '保存に失敗しました', 'error');
     })
     .catch(err => showMsg('msgGuideText', '通信エラー: ' + err, 'error'));
+}
+
+// ===== ⑥ ブレンダーID管理 =====
+function loadBlenderIdCounter() {
+  fetch(`${GAS_URL}?action=getBlenderIdCounter`)
+    .then(r => r.json())
+    .then(data => {
+      const counter = parseInt(data.counter) || 0;
+      document.getElementById('nextBlenderIdDisplay').textContent = counter + 1;
+      document.getElementById('blenderIdCounterInput').value = counter;
+    })
+    .catch(err => console.error('ブレンダーIDカウンター読込エラー:', err));
+}
+
+function saveBlenderIdCounter() {
+  const val = parseInt(document.getElementById('blenderIdCounterInput').value);
+  if (isNaN(val) || val < 0) {
+    showMsg('msgBlenderId', '0以上の数値を入力してください', 'error');
+    return;
+  }
+  gasPost({ action: 'updateBlenderIdCounter', counter: val })
+    .then(data => {
+      if (data.success) {
+        document.getElementById('nextBlenderIdDisplay').textContent = val + 1;
+        showMsg('msgBlenderId', `カウンターを ${val} に設定しました（次の番号: ${val + 1}）`, 'success');
+      } else {
+        showMsg('msgBlenderId', data.error || '更新に失敗しました', 'error');
+      }
+    })
+    .catch(err => showMsg('msgBlenderId', '通信エラー: ' + err, 'error'));
 }
 
 // ===== メッセージ表示（3秒で消える）=====

@@ -400,7 +400,7 @@
 
 <script>
 // ===== 設定 =====
-const GAS_URL  = 'https://script.google.com/macros/s/AKfycbwIEI_1cCKyxQZ0uNf1Gglv-KVVMvnC22ovisPUINlR7KzmbyBn6o0bfDLzunWQsz_n/exec';
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
 const PASSWORD = 'brewery2024';
 const SESSION_KEY = 'msw_brewery_auth';
 
@@ -491,7 +491,7 @@ function renderOrders() {
 }
 
 function renderCard(order) {
-  const id        = esc(order['識別番号'] || '-');
+  const id        = esc(order['ブレンダーID'] || '-');
   const date      = esc(formatDate(order['受信日時']));
   const recipe    = esc(order['レシピ名']   || '(レシピ名なし)');
   const blender   = esc(order['ブレンダー名'] || '-');
@@ -554,7 +554,7 @@ function confirmOrder(id, btn) {
   .then(data => {
     if (data.success) {
       // ローカルデータ更新
-      const order = allOrders.find(o => o['識別番号'] === id);
+      const order = allOrders.find(o => String(o['ブレンダーID']) === id);
       if (order) order['確認済み'] = '✓';
       // カードをグレーアウト
       const card = document.getElementById(`card-${id}`);

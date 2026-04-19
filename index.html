@@ -8,1115 +8,1283 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --gold: #B8860B;
-      --gold-light: #D4A820;
-      --gold-pale: #F5EDD5;
-      --bg: #FAF8F4;
-      --bg-card: #FFFFFF;
-      --text: #2C1F0E;
-      --text-muted: #7A6A52;
-      --border: #E2D5BB;
-      --radius: 12px;
+      --gold: #B8860B; --gold-light: #D4A820; --gold-pale: #F5EDD5;
+      --bg: #FAF8F4; --bg-card: #FFFFFF; --text: #2C1F0E;
+      --text-muted: #7A6A52; --border: #E2D5BB; --radius: 12px;
       --shadow: 0 4px 20px rgba(184,134,11,0.10);
     }
-
-    body {
-      font-family: 'Noto Serif JP', serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    body { font-family:'Noto Serif JP',serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
     /* ===== ヘッダー ===== */
-    .header {
-      width: 100%;
-      background: var(--text);
-      color: var(--gold-pale);
-      text-align: center;
-      padding: 20px 16px 16px;
-      position: relative;
+    .header { background:var(--text); color:#fff; padding:16px 16px 12px; position:relative; }
+    .header-inner { display:flex; align-items:flex-start; justify-content:space-between; }
+    .header-logo-area { flex:1; text-align:center; }
+    .header-subtitle { font-size:9px; letter-spacing:4px; color:var(--gold); margin-bottom:4px; }
+    .header-logo { font-size:22px; font-weight:700; letter-spacing:3px; color:#fff; line-height:1; }
+    .header-logo span { color:var(--gold); }
+    .header-tagline { font-size:10px; color:var(--gold); letter-spacing:2px; margin-top:4px; }
+
+    /* ===== 言語切替 ===== */
+    .lang-switch { display:flex; gap:4px; flex-shrink:0; padding-top:2px; }
+    .lang-btn {
+      padding:4px 8px; border-radius:4px; border:1px solid #a89070;
+      background:transparent; color:#a89070; font-size:10px; cursor:pointer;
+      font-family:'Noto Serif JP',serif; letter-spacing:0.5px; line-height:1.4;
+      transition:all 0.15s;
     }
-    .header-subtitle {
-      font-size: 10px;
-      letter-spacing: 4px;
-      color: var(--gold);
-      margin-bottom: 6px;
-    }
-    .header-logo {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      color: #FFFFFF;
-      line-height: 1;
-    }
-    .header-logo span { color: var(--gold); }
-    .header-tagline {
-      font-size: 11px;
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-top: 6px;
-    }
+    .lang-btn.active { background:var(--gold); border-color:var(--gold); color:#fff; }
 
     /* ===== ステップインジケーター ===== */
-    .step-indicator {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 24px 8px;
-      gap: 0;
-      width: 100%;
-      max-width: 390px;
-    }
+    .step-area { max-width:390px; margin:0 auto; padding:16px 24px 4px; }
+    .step-row { display:flex; align-items:center; }
     .step-dot {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      position: relative;
-      z-index: 1;
-      transition: all 0.3s;
+      width:28px; height:28px; border-radius:50%; border:2px solid var(--border);
+      background:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:600; color:var(--text-muted); flex-shrink:0; transition:all 0.3s;
     }
-    .step-dot.active {
-      border-color: var(--gold);
-      background: var(--gold);
-      color: #fff;
-    }
-    .step-dot.done {
-      border-color: var(--gold);
-      background: var(--gold-pale);
-      color: var(--gold);
-    }
-    .step-line {
-      flex: 1;
-      height: 2px;
-      background: var(--border);
-      margin: 0 4px;
-    }
-    .step-line.done { background: var(--gold); }
-    .step-labels {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 8px 0;
-      width: 100%;
-      max-width: 390px;
-    }
-    .step-label {
-      font-size: 10px;
-      color: var(--text-muted);
-      text-align: center;
-      flex: 1;
-    }
-    .step-label.active { color: var(--gold); font-weight: 600; }
+    .step-dot.active { border-color:var(--gold); background:var(--gold); color:#fff; }
+    .step-dot.done   { border-color:var(--gold); background:var(--gold-pale); color:var(--gold); }
+    .step-line { flex:1; height:2px; background:var(--border); margin:0 4px; transition:background 0.3s; }
+    .step-line.done { background:var(--gold); }
+    .step-labels { display:flex; justify-content:space-between; padding:4px 4px 0; }
+    .step-lbl { font-size:9px; color:var(--text-muted); text-align:center; flex:1; }
+    .step-lbl.active { color:var(--gold); font-weight:600; }
 
-    /* ===== メインコンテンツ ===== */
-    .container {
-      width: 100%;
-      max-width: 390px;
-      padding: 16px;
-    }
-
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* ===== セクションタイトル ===== */
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--gold-pale);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-title::before {
-      content: '';
-      display: inline-block;
-      width: 3px;
-      height: 14px;
-      background: var(--gold);
-      border-radius: 2px;
-    }
+    /* ===== コンテナ ===== */
+    .container { max-width:390px; margin:0 auto; padding:14px 14px 40px; }
+    .screen { display:none; }
+    .screen.active { display:block; }
 
     /* ===== カード ===== */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow);
+    .card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:var(--shadow); }
+    .section-title {
+      font-size:12px; font-weight:600; color:var(--gold); letter-spacing:2px;
+      margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--gold-pale);
+      display:flex; align-items:center; gap:6px;
     }
+    .section-title::before { content:''; display:inline-block; width:3px; height:13px; background:var(--gold); border-radius:2px; }
 
-    /* ===== フォーム要素 ===== */
-    .field {
-      margin-bottom: 16px;
+    /* ===== フィールド ===== */
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:1px; margin-bottom:5px; }
+    .req { color:#C0392B; margin-left:3px; }
+    .opt { color:var(--text-muted); font-weight:400; font-size:10px; margin-left:3px; }
+    input[type="text"],input[type="email"],input[type="tel"],input[type="date"],input[type="number"],
+    select,textarea {
+      width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:8px;
+      font-family:'Noto Serif JP',serif; font-size:15px; color:var(--text);
+      background:#fff; outline:none; transition:border-color 0.2s; -webkit-appearance:none;
     }
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-      margin-bottom: 6px;
+    input:focus,select:focus,textarea:focus { border-color:var(--gold); }
+    input::placeholder,textarea::placeholder { color:#C5B99A; }
+    textarea { resize:vertical; min-height:80px; }
+    .field.has-error input, .field.has-error select { border-color:#C0392B; }
+    .err-msg { color:#C0392B; font-size:11px; margin-top:4px; display:none; }
+    .err-msg.show { display:block; }
+
+    /* ===== ラベル選択 ===== */
+    .label-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .label-opt input[type="radio"] { position:absolute; opacity:0; width:0; }
+    .label-opt label {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:14px 10px; border:2px solid var(--border); border-radius:var(--radius);
+      cursor:pointer; transition:all 0.2s; gap:8px; min-height:90px;
     }
-    .field label .required {
-      color: #C0392B;
-      margin-left: 4px;
+    .label-opt input:checked + label { border-color:var(--gold); background:var(--gold-pale); }
+    .label-preview {
+      width:48px; height:68px; border-radius:3px; display:flex; align-items:center;
+      justify-content:center; font-size:8px; font-weight:600; letter-spacing:1px;
+      border:1px solid rgba(0,0,0,0.1); text-align:center; word-break:break-all;
     }
-    .field label .optional {
-      color: var(--text-muted);
-      font-weight: 400;
-      font-size: 11px;
-      margin-left: 4px;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    select {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 15px;
-      color: var(--text);
-      background: #fff;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-    }
-    input:focus, select:focus {
-      border-color: var(--gold);
-    }
-    input::placeholder { color: #C5B99A; }
+    .label-preview.white { background:#fff; color:#333; border-color:#ccc; }
+    .label-preview.black { background:#1a1a1a; color:#fff; border-color:#000; }
+    .label-preview.custom { background:var(--gold-pale); color:var(--gold); border-color:var(--gold); font-size:10px; }
+    .label-name { font-size:13px; font-weight:600; color:var(--text); }
+    .label-opt input:checked + label .label-name { color:var(--gold); }
 
     /* ===== ブレンド行 ===== */
-    .blend-header {
-      display: grid;
-      grid-template-columns: 1fr 90px 36px;
-      gap: 8px;
-      padding: 0 0 6px;
-      border-bottom: 1px solid var(--gold-pale);
-      margin-bottom: 8px;
+    .blend-header { display:grid; grid-template-columns:1fr 88px 34px; gap:6px; padding-bottom:6px; border-bottom:1px solid var(--gold-pale); margin-bottom:6px; }
+    .blend-header span { font-size:10px; font-weight:600; color:var(--text-muted); letter-spacing:1px; }
+    .blend-row { display:grid; grid-template-columns:1fr 88px 34px; gap:6px; margin-bottom:6px; align-items:center; }
+    .blend-row select { font-size:13px; padding:9px 8px; }
+    .ml-wrap { position:relative; }
+    .ml-wrap input[type="number"] {
+      padding:9px 28px 9px 8px; text-align:center; font-size:14px;
+      -moz-appearance:textfield;
     }
-    .blend-header span {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 1px;
+    .ml-wrap input::-webkit-inner-spin-button, .ml-wrap input::-webkit-outer-spin-button { -webkit-appearance:none; }
+    .ml-unit { position:absolute; right:30px; top:50%; transform:translateY(-50%); font-size:9px; color:var(--text-muted); pointer-events:none; }
+    .ml-spin { position:absolute; right:0; top:0; bottom:0; width:28px; display:flex; flex-direction:column; }
+    .ml-spin button {
+      flex:1; border:none; background:var(--gold-pale); color:var(--gold); font-size:10px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
     }
-    .blend-row {
-      display: grid;
-      grid-template-columns: 1fr 90px 36px;
-      gap: 8px;
-      margin-bottom: 8px;
-      align-items: center;
+    .ml-spin button:first-child { border-radius:0 6px 0 0; border-bottom:1px solid var(--border); }
+    .ml-spin button:last-child  { border-radius:0 0 6px 0; }
+    .ml-spin button:active { background:var(--gold); color:#fff; }
+    .btn-del {
+      width:34px; height:34px; border:1.5px solid #E8D0D0; border-radius:8px;
+      background:#FFF5F5; color:#C0392B; font-size:15px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
-    .blend-row select {
-      font-size: 14px;
-      padding: 10px 10px;
+    .btn-del:active { background:#C0392B; color:#fff; }
+    .total-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--gold-pale); border:1px solid var(--gold); border-radius:8px;
+      padding:9px 13px; margin-top:10px;
     }
-    .ml-input {
-      position: relative;
+    .total-bar-left .lbl { font-size:11px; color:var(--text-muted); }
+    .total-bar-left .target { font-size:10px; color:var(--text-muted); }
+    .total-val { font-size:18px; font-weight:700; color:var(--gold); }
+    .total-over { color:#C0392B !important; }
+    .btn-add-blend {
+      width:100%; padding:9px; border:1.5px dashed var(--gold); border-radius:8px;
+      background:transparent; color:var(--gold); font-family:'Noto Serif JP',serif;
+      font-size:12px; cursor:pointer; margin-top:6px; letter-spacing:1px; transition:all 0.2s;
     }
-    .ml-input input[type="number"] {
-      width: 100%;
-      padding: 10px 28px 10px 10px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 14px;
-      color: var(--text);
-      text-align: center;
-      outline: none;
-      -moz-appearance: textfield;
-    }
-    .ml-input input[type="number"]::-webkit-inner-spin-button,
-    .ml-input input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-    }
-    .ml-input input:focus { border-color: var(--gold); }
-    .ml-spinner {
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 28px;
-      display: flex;
-      flex-direction: column;
-    }
-    .ml-spinner button {
-      flex: 1;
-      border: none;
-      background: var(--gold-pale);
-      color: var(--gold);
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      transition: background 0.15s;
-    }
-    .ml-spinner button:first-child {
-      border-radius: 0 6px 0 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .ml-spinner button:last-child { border-radius: 0 0 6px 0; }
-    .ml-spinner button:active { background: var(--gold); color: #fff; }
-    .ml-unit {
-      position: absolute;
-      right: 34px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 10px;
-      color: var(--text-muted);
-      pointer-events: none;
-    }
+    .btn-add-blend:disabled { opacity:0.4; cursor:not-allowed; }
 
-    .btn-delete {
-      width: 36px;
-      height: 36px;
-      border: 1.5px solid #E8D0D0;
-      border-radius: 8px;
-      background: #FFF5F5;
-      color: #C0392B;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-      flex-shrink: 0;
+    /* ===== チェックボックス ===== */
+    .check-row {
+      display:flex; align-items:flex-start; gap:10px; padding:10px;
+      background:var(--gold-pale); border:1px solid var(--gold); border-radius:8px; margin-bottom:12px;
     }
-    .btn-delete:active { background: #C0392B; color: #fff; }
+    .check-row input[type="checkbox"] { width:18px; height:18px; min-width:18px; accent-color:var(--gold); margin-top:2px; cursor:pointer; }
+    .check-row label { font-size:12px; color:var(--text); line-height:1.6; cursor:pointer; }
 
-    /* ===== 合計表示 ===== */
-    .total-display {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--gold-pale);
-      border: 1px solid var(--gold);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-top: 12px;
+    /* ===== 数量スピナー ===== */
+    .qty-wrap { display:flex; align-items:center; gap:10px; }
+    .qty-wrap label { font-size:13px; color:var(--text); flex:1; }
+    .qty-ctrl { display:flex; align-items:center; gap:0; border:1.5px solid var(--border); border-radius:8px; overflow:hidden; }
+    .qty-ctrl button {
+      width:36px; height:36px; border:none; background:var(--gold-pale); color:var(--gold);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
-    .total-label {
-      font-size: 12px;
-      color: var(--text-muted);
+    .qty-ctrl button:active { background:var(--gold); color:#fff; }
+    .qty-ctrl input[type="number"] {
+      width:44px; border:none; border-radius:0; border-left:1px solid var(--border);
+      border-right:1px solid var(--border); text-align:center; font-size:15px; padding:0;
+      height:36px; -moz-appearance:textfield;
     }
-    .total-value {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--gold);
-    }
-    .total-target {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+    .qty-ctrl input::-webkit-inner-spin-button { -webkit-appearance:none; }
 
-    /* ===== 行追加ボタン ===== */
-    .btn-add-row {
-      width: 100%;
-      padding: 10px;
-      border: 1.5px dashed var(--gold);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--gold);
-      font-family: 'Noto Serif JP', serif;
-      font-size: 13px;
-      cursor: pointer;
-      margin-top: 4px;
-      transition: all 0.2s;
-      letter-spacing: 1px;
+    /* ===== 郵便番号 ===== */
+    .zip-row { display:flex; gap:8px; }
+    .zip-row input { flex:1; }
+    .btn-zip {
+      padding:11px 14px; background:var(--gold); color:#fff; border:none;
+      border-radius:8px; font-family:'Noto Serif JP',serif; font-size:12px;
+      cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background 0.2s;
     }
-    .btn-add-row:active { background: var(--gold-pale); }
-    .btn-add-row:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-zip:hover { background:var(--gold-light); }
+    .zip-msg { font-size:11px; color:var(--text-muted); margin-top:4px; }
 
-    /* ===== ラベル色選択 ===== */
-    .label-choice {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .label-option {
-      position: relative;
-    }
-    .label-option input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-    }
-    .label-option label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 18px 12px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: all 0.2s;
-      gap: 10px;
-      min-height: 100px;
-    }
-    .label-option input:checked + label {
-      border-color: var(--gold);
-      background: var(--gold-pale);
-    }
-    .label-preview {
-      width: 56px;
-      height: 80px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      border: 1px solid rgba(0,0,0,0.1);
-    }
-    .label-preview.white {
-      background: #ffffff;
-      color: #333;
-      border-color: #ccc;
-    }
-    .label-preview.black {
-      background: #1a1a1a;
-      color: #fff;
-      border-color: #000;
-    }
-    .label-preview.custom {
-      background: var(--gold-pale);
-      color: var(--gold);
-      border-color: var(--gold);
-      font-size: 11px;
-      word-break: break-all;
-      text-align: center;
-    }
-    .label-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .label-option input:checked + label .label-name { color: var(--gold); }
+    /* ===== 確認画面リスト ===== */
+    .confirm-list { display:flex; flex-direction:column; }
+    .confirm-row { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); align-items:baseline; }
+    .confirm-row:last-child { border-bottom:none; }
+    .conf-lbl { font-size:11px; color:var(--text-muted); flex-shrink:0; width:90px; letter-spacing:0.5px; }
+    .conf-val { font-size:14px; color:var(--text); font-weight:600; flex:1; word-break:break-all; }
+    .conf-blend-items { display:flex; flex-wrap:wrap; gap:5px; }
+    .conf-blend-chip { background:var(--gold-pale); border:1px solid var(--border); border-radius:6px; padding:3px 8px; font-size:12px; }
+    .confirm-question { font-size:15px; font-weight:600; text-align:center; color:var(--text); margin:16px 0 20px; letter-spacing:1px; }
+
+    /* ===== 完了画面 ===== */
+    .complete-wrap { text-align:center; padding:24px 10px 20px; }
+    .complete-icon { width:64px; height:64px; border-radius:50%; background:var(--gold-pale); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 16px; }
+    .complete-title { font-size:18px; font-weight:700; letter-spacing:2px; margin-bottom:8px; }
+    .complete-msg { font-size:13px; color:var(--text-muted); line-height:1.8; margin-bottom:24px; }
+    .blender-id-box { background:var(--text); color:var(--gold); border-radius:var(--radius); padding:18px; margin-bottom:12px; }
+    .blender-id-lbl { font-size:10px; letter-spacing:2px; color:#a89070; margin-bottom:6px; }
+    .blender-id-val { font-size:28px; font-weight:700; letter-spacing:3px; }
 
     /* ===== ボタン ===== */
     .btn-primary {
-      width: 100%;
-      padding: 16px;
-      background: var(--gold);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-family: 'Noto Serif JP', serif;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 2px;
-      transition: background 0.2s;
-      box-shadow: 0 4px 14px rgba(184,134,11,0.3);
+      width:100%; padding:15px; background:var(--gold); color:#fff; border:none;
+      border-radius:var(--radius); font-family:'Noto Serif JP',serif; font-size:15px;
+      font-weight:600; cursor:pointer; letter-spacing:2px; transition:background 0.2s;
+      box-shadow:0 4px 14px rgba(184,134,11,0.3);
     }
-    .btn-primary:active { background: #8B6508; }
-    .btn-primary:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-
+    .btn-primary:active { background:#8B6508; }
+    .btn-primary:disabled { background:#ccc; box-shadow:none; cursor:not-allowed; }
     .btn-secondary {
-      width: 100%;
-      padding: 14px;
-      background: transparent;
-      color: var(--gold);
-      border: 1.5px solid var(--gold);
-      border-radius: var(--radius);
-      font-family: 'Noto Serif JP', serif;
-      font-size: 15px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      transition: all 0.2s;
+      padding:13px; background:transparent; color:var(--gold); border:1.5px solid var(--gold);
+      border-radius:var(--radius); font-family:'Noto Serif JP',serif; font-size:14px;
+      cursor:pointer; letter-spacing:1px; transition:all 0.2s; width:100%;
     }
-    .btn-secondary:active { background: var(--gold-pale); }
+    .btn-secondary:active { background:var(--gold-pale); }
+    .btn-ghost {
+      width:100%; padding:14px; background:transparent; color:var(--text-muted);
+      border:1.5px solid var(--border); border-radius:var(--radius);
+      font-family:'Noto Serif JP',serif; font-size:14px; cursor:pointer; letter-spacing:1px;
+    }
+    .btn-row { display:flex; gap:10px; }
+    .btn-row .btn-secondary { flex:none; width:80px; padding:13px 0; }
 
-    /* ===== チェックボックス ===== */
-    .checkbox-field {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      background: var(--gold-pale);
-      border-radius: 8px;
-      border: 1px solid var(--gold);
-      margin-bottom: 20px;
-    }
-    .checkbox-field input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      min-width: 20px;
-      accent-color: var(--gold);
-      cursor: pointer;
-      margin-top: 2px;
-    }
-    .checkbox-field label {
-      font-size: 12px;
-      color: var(--text);
-      line-height: 1.6;
-      cursor: pointer;
-    }
-    .checkbox-field a { color: var(--gold); }
-
-    /* ===== エラーメッセージ ===== */
-    .error-msg {
-      color: #C0392B;
-      font-size: 11px;
-      margin-top: 4px;
-      display: none;
-    }
-    .field.error input,
-    .field.error select {
-      border-color: #C0392B;
-    }
-
-    /* ===== 完了画面 ===== */
-    .complete-screen {
-      text-align: center;
-      padding: 32px 20px 24px;
-    }
-    .complete-icon {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: var(--gold-pale);
-      border: 2px solid var(--gold);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      margin: 0 auto 20px;
-    }
-    .complete-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-    .complete-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      margin-bottom: 28px;
-    }
-    .id-display {
-      background: var(--text);
-      color: var(--gold);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .id-label {
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: #a89070;
-      margin-bottom: 8px;
-    }
-    .id-number {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 2px;
-    }
-    .show-staff {
-      background: #FFF9E6;
-      border: 1px solid var(--gold);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+    /* ===== ガイドカード ===== */
+    .guide-card { background:var(--gold-pale); border:1px solid var(--gold); border-radius:var(--radius); padding:13px 16px; margin-bottom:14px; font-size:13px; color:var(--text-muted); text-align:center; line-height:1.7; }
 
     /* ===== ローディング ===== */
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px 20px;
-    }
+    .loading-wrap { text-align:center; padding:60px 20px; }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--gold-pale);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      width:36px; height:36px; border:3px solid var(--gold-pale); border-top-color:var(--gold);
+      border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-txt { font-size:13px; color:var(--text-muted); }
 
-    /* ===== 区切り線 ===== */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 8px 0 16px;
-    }
+    /* ===== A フロー 感謝メッセージ ===== */
+    .greeting-banner { background:var(--text); color:var(--gold); border-radius:var(--radius); padding:14px 18px; text-align:center; margin-bottom:14px; font-size:16px; font-weight:700; letter-spacing:2px; }
 
-    .mt-8  { margin-top:  8px; }
-    .mt-12 { margin-top: 12px; }
-    .mt-16 { margin-top: 16px; }
-    .mt-20 { margin-top: 20px; }
-    .pb-24 { padding-bottom: 24px; }
+    .mt12 { margin-top:12px; }
+    .mt16 { margin-top:16px; }
+    .mb0  { margin-bottom:0; }
+    .hidden { display:none !important; }
   </style>
 </head>
 <body>
 
 <!-- ===== ヘッダー ===== -->
 <div class="header">
-  <div class="header-subtitle">BLEND YOUR OWN SAKE</div>
-  <div class="header-logo">MY <span>SAKE</span> WORLD</div>
-  <div class="header-tagline">マイブレンド体験</div>
+  <div class="header-inner">
+    <div style="width:72px"></div><!-- スペーサー -->
+    <div class="header-logo-area">
+      <div class="header-subtitle">BLEND YOUR OWN SAKE</div>
+      <div class="header-logo">MY <span>SAKE</span> WORLD</div>
+      <div class="header-tagline" data-t="header.tagline">マイブレンド体験</div>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn active" id="btnJa" onclick="setLang('ja')">日本語</button>
+      <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
 </div>
 
-<!-- ===== ステップインジケーター ===== -->
-<div class="step-indicator" id="stepIndicator">
-  <div class="step-dot active" id="dot1">1</div>
-  <div class="step-line" id="line1"></div>
-  <div class="step-dot" id="dot2">2</div>
+<!-- ===== ステップインジケーター（メインフロー）===== -->
+<div id="mainStepArea" class="step-area hidden">
+  <div class="step-row">
+    <div class="step-dot active" id="mdot1">1</div>
+    <div class="step-line" id="mline1"></div>
+    <div class="step-dot" id="mdot2">2</div>
+    <div class="step-line" id="mline2"></div>
+    <div class="step-dot" id="mdot3">3</div>
+  </div>
+  <div class="step-labels">
+    <div class="step-lbl active" id="mlbl1" data-t="step.recipe">レシピ入力</div>
+    <div class="step-lbl" id="mlbl2" data-t="step.confirm">確認</div>
+    <div class="step-lbl" id="mlbl3" data-t="step.done">完了</div>
+  </div>
 </div>
-<div class="step-labels" id="stepLabels">
-  <div class="step-label active" id="label1">レシピ入力</div>
-  <div class="step-label" id="label2">お客様情報</div>
+
+<!-- ===== ステップインジケーター（追加注文フロー）===== -->
+<div id="addStepArea" class="step-area hidden">
+  <div class="step-row">
+    <div class="step-dot active" id="adot1">1</div>
+    <div class="step-line" id="aline1"></div>
+    <div class="step-dot" id="adot2">2</div>
+    <div class="step-line" id="aline2"></div>
+    <div class="step-dot" id="adot3">3</div>
+  </div>
+  <div class="step-labels">
+    <div class="step-lbl active" id="albl1" data-t="step.order">追加注文</div>
+    <div class="step-lbl" id="albl2" data-t="step.confirm">確認</div>
+    <div class="step-lbl" id="albl3" data-t="step.done">完了</div>
+  </div>
 </div>
 
 <div class="container">
 
-  <!-- ========== STEP 1 ========== -->
-  <div class="screen active" id="step1">
-
-    <!-- ローディング -->
-    <div class="loading" id="loadingSpinner">
+  <!-- ========== ローディング ========== -->
+  <div class="screen active" id="screenLoading">
+    <div class="loading-wrap">
       <div class="spinner"></div>
-      <p style="color:var(--text-muted);font-size:13px;">フォームを読み込み中...</p>
+      <div class="loading-txt" data-t="loading">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 1: レシピ入力 ========== -->
+  <div class="screen" id="step1">
+
+    <!-- 案内文 -->
+    <div class="guide-card hidden" id="guideCard">
+      <span id="guideText"></span>
     </div>
 
-    <!-- 案内文（GASから動的取得）-->
-    <div class="card" id="guideCard" style="display:none;text-align:center;padding:16px 20px">
-      <div id="guideText" style="font-size:13px;color:var(--text-muted);line-height:1.8"></div>
-    </div>
-
-    <!-- レシピ情報 -->
+    <!-- 基本情報 -->
     <div class="card">
-      <div class="section-title">レシピ基本情報</div>
+      <div class="section-title" data-t="section.basic">基本情報</div>
 
-      <div class="field" id="fieldRecipeName">
-        <label>レシピ名（タイトル）<span class="required">*</span></label>
-        <input type="text" id="recipeName" placeholder="例：春の宴" maxlength="50">
-        <div class="error-msg" id="errRecipeName">レシピ名を入力してください</div>
+      <div class="field" id="fName">
+        <label data-t="field.name">お名前<span class="req">*</span></label>
+        <input type="text" id="inName" maxlength="50" data-ph="ph.name">
+        <div class="err-msg" id="eName" data-t="err.required">この項目は必須です</div>
       </div>
 
-      <div class="field" id="fieldBlenderName">
-        <label>ブレンダー名（お名前）<span class="required">*</span></label>
-        <input type="text" id="blenderName" placeholder="例：山田 太郎" maxlength="50">
-        <div class="error-msg" id="errBlenderName">ブレンダー名を入力してください</div>
+      <div class="field" id="fBlender">
+        <label data-t="field.blender">Blender名<span class="req">*</span></label>
+        <input type="text" id="inBlender" maxlength="50" data-ph="ph.blender">
+        <div class="err-msg" id="eBlender" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field" id="fTitle">
+        <label data-t="field.title">Title（レシピ名）<span class="req">*</span></label>
+        <input type="text" id="inTitle" maxlength="60" data-ph="ph.title">
+        <div class="err-msg" id="eTitle" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field" id="fDate">
+        <label data-t="field.date">Date<span class="req">*</span></label>
+        <input type="date" id="inDate">
+        <div class="err-msg" id="eDate" data-t="err.required">この項目は必須です</div>
       </div>
     </div>
 
-    <!-- ブレンド入力 -->
+    <!-- ラベルの色 -->
     <div class="card">
-      <div class="section-title">ブレンド配合</div>
+      <div class="section-title" data-t="section.label">ラベルの色</div>
+      <div class="label-grid" id="labelGrid"><!-- JS生成 --></div>
+      <div class="err-msg mt12" id="eLabel" data-t="err.label">ラベルの色を選択してください</div>
+    </div>
 
+    <!-- ブレンド配合 -->
+    <div class="card">
+      <div class="section-title" data-t="section.blend">ブレンド配合</div>
       <div class="blend-header">
-        <span>お酒の名前</span>
-        <span style="text-align:center">ml数</span>
+        <span data-t="blend.sake">お酒</span>
+        <span style="text-align:center" data-t="blend.ml">ml</span>
         <span></span>
       </div>
-
       <div id="blendRows"></div>
-
-      <div class="total-display">
-        <div>
-          <div class="total-label">合計</div>
-          <div class="total-target" id="targetMlLabel">目標：40ml</div>
+      <div class="total-bar">
+        <div class="total-bar-left">
+          <div class="lbl" data-t="blend.total">合計</div>
+          <div class="target" id="targetLbl">目標：40ml</div>
         </div>
-        <div class="total-value"><span id="totalMl">0</span> ml</div>
+        <div class="total-val"><span id="totalMl">0</span> ml</div>
       </div>
+      <div class="err-msg mt12" id="eTotal" data-t="err.over">合計が目標を超えています</div>
+      <button class="btn-add-blend mt12" id="btnAddBlend" onclick="addBlendRow(false)"></button>
+      <div class="err-msg" id="eBlend" data-t="err.blend">少なくとも1種選択してください</div>
+    </div>
 
-      <button class="btn-add-row mt-12" id="btnAddRow" onclick="addBlendRow()">
-        ＋ お酒を追加する（最大8種）
-      </button>
-      <div class="error-msg" style="display:none;margin-top:6px" id="errBlend">
-        少なくとも1種のお酒を選択・入力してください
+    <!-- メール -->
+    <div class="card mb0">
+      <div class="section-title" data-t="section.contact">連絡先</div>
+      <div class="field mb0" id="fEmail">
+        <label data-t="field.email">メールアドレス<span class="req">*</span></label>
+        <input type="email" id="inEmail" data-ph="ph.email">
+        <div class="err-msg" id="eEmail" data-t="err.email">正しいメールアドレスを入力してください</div>
       </div>
     </div>
 
-    <!-- ラベル色選択（GASから動的生成）-->
-    <div class="card">
-      <div class="section-title">ラベルの色</div>
-      <div class="label-choice" id="labelChoice">
-        <!-- JavaScript の renderLabelOptions() で生成 -->
-      </div>
-      <div class="error-msg" style="display:none;margin-top:8px" id="errLabel">
-        ラベルの色を選択してください
-      </div>
-    </div>
-
-    <div class="pb-24">
-      <button class="btn-primary" onclick="goStep2()">次へ →</button>
+    <div style="padding-top:14px">
+      <button class="btn-primary" onclick="goStep2()" data-t="btn.next">次へ →</button>
     </div>
 
   </div><!-- /step1 -->
 
-  <!-- ========== STEP 2 ========== -->
+  <!-- ========== STEP 2: 確認 ========== -->
   <div class="screen" id="step2">
-
     <div class="card">
-      <div class="section-title">お客様情報</div>
-
-      <div class="field" id="fieldFullName">
-        <label>お名前（漢字）<span class="required">*</span></label>
-        <input type="text" id="fullName" placeholder="例：山田 太郎" maxlength="50">
-        <div class="error-msg" id="errFullName">お名前を入力してください</div>
-      </div>
-
-      <div class="field" id="fieldEmail">
-        <label>メールアドレス<span class="required">*</span></label>
-        <input type="email" id="email" placeholder="example@email.com">
-        <div class="error-msg" id="errEmail">正しいメールアドレスを入力してください</div>
-      </div>
-
-      <div class="field" id="fieldPhone">
-        <label>電話番号<span class="required">*</span></label>
-        <input type="tel" id="phone" placeholder="090-0000-0000">
-        <div class="error-msg" id="errPhone">電話番号を入力してください</div>
-      </div>
-
-      <div class="field" id="fieldAddress">
-        <label>配送先住所<span class="optional">（任意・追加注文の場合）</span></label>
-        <input type="text" id="address" placeholder="例：東京都渋谷区..." maxlength="200">
-      </div>
+      <div class="section-title" data-t="section.confirm">入力内容の確認</div>
+      <div id="confirmList" class="confirm-list"></div>
     </div>
-
-    <!-- プライバシーポリシー -->
-    <div class="checkbox-field">
-      <input type="checkbox" id="privacy">
-      <label for="privacy">
-        <a href="#" onclick="return false">プライバシーポリシー</a>に同意の上、個人情報を送信します。入力された情報はブレンドレシピの記録および連絡目的にのみ使用します。
-      </label>
+    <p class="confirm-question" data-t="confirm.question">こちらでお間違いないでしょうか？</p>
+    <div class="btn-row" style="padding-bottom:14px">
+      <button class="btn-secondary" onclick="goStep1()" data-t="btn.edit">修正する</button>
+      <button class="btn-primary" id="btnConfirm" onclick="submitRecipe()" data-t="btn.confirm">確定する</button>
     </div>
-
-    <div style="display:flex;gap:10px;margin-bottom:12px">
-      <button class="btn-secondary" onclick="goStep1()" style="width:80px;padding:14px 0;flex-shrink:0">← 戻る</button>
-      <button class="btn-primary" id="btnSubmit" onclick="submitForm()">送信する</button>
-    </div>
-
-    <!-- 送信中 -->
-    <div class="loading" id="submitLoading">
+    <div class="loading-wrap hidden" id="submitLoading">
       <div class="spinner"></div>
-      <p style="color:var(--text-muted);font-size:13px;">送信中...</p>
+      <div class="loading-txt" data-t="sending">送信中...</div>
     </div>
-
   </div><!-- /step2 -->
 
-  <!-- ========== 完了画面 ========== -->
-  <div class="screen" id="stepComplete">
-    <div class="complete-screen">
+  <!-- ========== STEP 3: 完了 ========== -->
+  <div class="screen" id="step3">
+    <div class="complete-wrap">
       <div class="complete-icon">🍶</div>
-      <div class="complete-title">送信完了</div>
-      <div class="complete-sub">
-        マイブレンドレシピを受け付けました。<br>
-        下の番号をスタッフにお見せください。
+      <div class="complete-title" data-t="complete.title">登録完了</div>
+      <div class="complete-msg" id="completeMsgText"></div>
+      <div class="blender-id-box">
+        <div class="blender-id-lbl" data-t="complete.id.label">あなたのブレンダーID</div>
+        <div class="blender-id-val" id="displayId">----</div>
+      </div>
+      <button class="btn-ghost mt16" onclick="goStepA1()" id="btnAdditional" data-t="btn.additional">
+        追い瓶・ペアリングチェンジはいかが？
+      </button>
+    </div>
+  </div><!-- /step3 -->
+
+  <!-- ========== STEP A1: 追加注文入力 ========== -->
+  <div class="screen" id="stepA1">
+    <div class="greeting-banner" data-t="additional.greeting">ありがとうございます！</div>
+
+    <!-- ① レシピ選択 -->
+    <div class="card">
+      <div class="section-title" data-t="section.recipe.sel">レシピ選択</div>
+      <div class="check-row">
+        <input type="checkbox" id="chkSameRecipe" checked onchange="toggleAdditionalRecipe()">
+        <label for="chkSameRecipe" data-t="additional.sameRecipe">最初に登録したレシピと同じ</label>
       </div>
 
-      <div class="id-display">
-        <div class="id-label">識別番号</div>
-        <div class="id-number" id="completionId">-</div>
-      </div>
-
-      <div class="show-staff mt-12">
-        📋 スタッフにお見せください
-      </div>
-
-      <div style="margin-top:24px;font-size:12px;color:var(--text-muted);line-height:1.8">
-        この番号を控えておくと<br>後でご確認いただけます
+      <!-- 異なるレシピ入力（チェックを外した場合のみ表示）-->
+      <div id="additionalRecipeSection" class="hidden">
+        <div class="field" id="fATitle">
+          <label data-t="field.title">Title<span class="req">*</span></label>
+          <input type="text" id="inATitle" maxlength="60" data-ph="ph.title">
+          <div class="err-msg" id="eATitle" data-t="err.required">この項目は必須です</div>
+        </div>
+        <div class="field" id="fADate">
+          <label data-t="field.date">Date<span class="req">*</span></label>
+          <input type="date" id="inADate">
+          <div class="err-msg" id="eADate" data-t="err.required">この項目は必須です</div>
+        </div>
+        <div class="field">
+          <label data-t="section.label">ラベルの色<span class="req">*</span></label>
+          <div class="label-grid" id="labelGridA"><!-- JS生成 --></div>
+          <div class="err-msg mt12" id="eALabel" data-t="err.label">ラベルの色を選択してください</div>
+        </div>
+        <div class="section-title" style="margin-top:8px" data-t="section.blend">ブレンド配合</div>
+        <div class="blend-header">
+          <span data-t="blend.sake">お酒</span>
+          <span style="text-align:center" data-t="blend.ml">ml</span>
+          <span></span>
+        </div>
+        <div id="blendRowsA"></div>
+        <div class="total-bar">
+          <div class="total-bar-left">
+            <div class="lbl" data-t="blend.total">合計</div>
+            <div class="target" id="targetLblA">目標：40ml</div>
+          </div>
+          <div class="total-val"><span id="totalMlA">0</span> ml</div>
+        </div>
+        <div class="err-msg mt12" id="eTotalA" data-t="err.over">合計が目標を超えています</div>
+        <button class="btn-add-blend mt12" id="btnAddBlendA" onclick="addBlendRow(true)"></button>
+        <div class="err-msg" id="eBlendA" data-t="err.blend">少なくとも1種選択してください</div>
       </div>
     </div>
-  </div><!-- /stepComplete -->
+
+    <!-- ② 本数・容量 -->
+    <div class="card">
+      <div class="section-title" data-t="section.qty">本数・容量</div>
+      <div class="qty-wrap" style="margin-bottom:12px">
+        <label data-t="qty.200">200ml × 本数</label>
+        <div class="qty-ctrl">
+          <button onclick="changeQty('qty200',-1)">－</button>
+          <input type="number" id="qty200" value="0" min="0" max="99" readonly>
+          <button onclick="changeQty('qty200',1)">＋</button>
+        </div>
+      </div>
+      <div class="qty-wrap">
+        <label data-t="qty.720">720ml × 本数</label>
+        <div class="qty-ctrl">
+          <button onclick="changeQty('qty720',-1)">－</button>
+          <input type="number" id="qty720" value="0" min="0" max="99" readonly>
+          <button onclick="changeQty('qty720',1)">＋</button>
+        </div>
+      </div>
+      <div class="err-msg mt12" id="eQty" data-t="err.qty">本数を1本以上入力してください</div>
+    </div>
+
+    <!-- ③ 発送先 -->
+    <div class="card">
+      <div class="section-title" data-t="section.ship">発送先</div>
+
+      <div class="field" id="fRecipient">
+        <label data-t="ship.name">宛名<span class="req">*</span></label>
+        <input type="text" id="inRecipient" maxlength="60" data-ph="ph.name">
+        <div class="err-msg" id="eRecipient" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field" id="fShipPhone">
+        <label data-t="ship.phone">電話番号<span class="req">*</span></label>
+        <input type="tel" id="inShipPhone" data-ph="ph.phone">
+        <div class="err-msg" id="eShipPhone" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field" id="fZip">
+        <label data-t="ship.zip">郵便番号<span class="req">*</span></label>
+        <div class="zip-row">
+          <input type="text" id="inZip" inputmode="numeric" maxlength="8" data-ph="ph.zip">
+          <button class="btn-zip" onclick="lookupZip()" data-t="btn.zip">住所検索</button>
+        </div>
+        <div class="zip-msg" id="zipMsg"></div>
+        <div class="err-msg" id="eZip" data-t="err.zip">郵便番号を7桁で入力してください</div>
+      </div>
+
+      <div class="field" id="fAddress">
+        <label data-t="ship.address">住所<span class="req">*</span></label>
+        <input type="text" id="inAddress" data-ph="ph.address">
+        <div class="err-msg" id="eAddress" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field">
+        <label data-t="ship.building">マンション名・部屋番号<span class="opt" data-t="opt">(任意)</span></label>
+        <input type="text" id="inBuilding" data-ph="ph.building">
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="chkGift">
+        <label for="chkGift" data-t="ship.gift">ご自身以外の方に贈られる際はチェックを入れてください</label>
+      </div>
+
+      <div class="field mb0">
+        <label data-t="ship.notes">備考<span class="opt" data-t="opt">(任意)</span></label>
+        <textarea id="inNotes" rows="3" data-ph="ph.notes"></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row" style="padding-bottom:14px">
+      <button class="btn-secondary" onclick="showScreen('step3');showStepIndicator('main',3)" data-t="btn.back">← 戻る</button>
+      <button class="btn-primary" onclick="goStepA2()" data-t="btn.next">次へ →</button>
+    </div>
+
+  </div><!-- /stepA1 -->
+
+  <!-- ========== STEP A2: 追加注文確認 ========== -->
+  <div class="screen" id="stepA2">
+    <div class="card">
+      <div class="section-title" data-t="section.confirm">入力内容の確認</div>
+      <div id="confirmListA" class="confirm-list"></div>
+    </div>
+    <p class="confirm-question" data-t="confirm.question">こちらでお間違いないでしょうか？</p>
+    <div class="btn-row" style="padding-bottom:14px">
+      <button class="btn-secondary" onclick="goBackA1()" data-t="btn.edit">修正する</button>
+      <button class="btn-primary" id="btnConfirmA" onclick="submitAdditionalOrder()" data-t="btn.confirm">確定する</button>
+    </div>
+    <div class="loading-wrap hidden" id="submitLoadingA">
+      <div class="spinner"></div>
+      <div class="loading-txt" data-t="sending">送信中...</div>
+    </div>
+  </div><!-- /stepA2 -->
+
+  <!-- ========== STEP A3: 追加注文完了 ========== -->
+  <div class="screen" id="stepA3">
+    <div class="complete-wrap">
+      <div class="complete-icon">🎁</div>
+      <div class="complete-title" data-t="additional.complete.title">ありがとうございます</div>
+      <div class="complete-msg" data-t="additional.complete.msg">
+        ありがとうございます。<br>レジにてご精算お願いいたします。
+      </div>
+    </div>
+  </div><!-- /stepA3 -->
 
 </div><!-- /container -->
 
 <script>
 // ===== 設定 =====
-// GASをデプロイ後、以下のURLを書き換えてください
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwIEI_1cCKyxQZ0uNf1Gglv-KVVMvnC22ovisPUINlR7KzmbyBn6o0bfDLzunWQsz_n/exec';
-let MAX_BLEND_ROWS = 8; // GASの設定で上書きされる
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
+let TARGET_ML      = 40;
+let MAX_BLEND_ROWS = 8;
 
-let sakeList = [];
-let blendRowCount = 0;
-
-// ===== 初期化（フォーム設定 + 酒リストを並行取得）=====
-window.addEventListener('DOMContentLoaded', () => {
-  loadFormSettings();
-});
-
-function loadFormSettings() {
-  document.getElementById('loadingSpinner').style.display = 'block';
-  document.getElementById('btnAddRow').style.display = 'none';
-
-  Promise.all([
-    fetch(`${GAS_URL}?action=getFormSettings`).then(r => r.json()),
-    fetch(`${GAS_URL}?action=getSakeList`).then(r => r.json())
-  ])
-  .then(([settings, sakeData]) => {
-    // フォーム設定を適用
-    MAX_BLEND_ROWS = settings.maxRows || 8;
-    sakeList = sakeData.list || [];
-
-    // 目標ml表示
-    document.getElementById('targetMlLabel').textContent =
-      `目標：${settings.targetMl || 40}ml`;
-
-    // 案内文
-    const guideText = settings.guideText || '';
-    if (guideText) {
-      document.getElementById('guideText').textContent = guideText;
-      document.getElementById('guideCard').style.display = 'block';
-    }
-
-    // ラベル選択肢を動的生成
-    renderLabelOptions(settings.labelOptions || ['白ラベル', '黒ラベル']);
-
-    document.getElementById('loadingSpinner').style.display = 'none';
-    document.getElementById('btnAddRow').style.display = 'block';
-    addBlendRow(); // 最初の1行を追加
-  })
-  .catch(err => {
-    console.error('初期化エラー:', err);
-    // エラー時はデフォルト値で続行
-    MAX_BLEND_ROWS = 8;
-    document.getElementById('targetMlLabel').textContent = '目標：40ml';
-    renderLabelOptions(['白ラベル', '黒ラベル']);
-    document.getElementById('loadingSpinner').style.display = 'none';
-    document.getElementById('btnAddRow').style.display = 'block';
-    sakeList = [];
-    addBlendRow();
-  });
-}
-
-// ===== ラベル選択肢の動的生成 =====
-function renderLabelOptions(options) {
-  const container = document.getElementById('labelChoice');
-  // 選択肢が1〜2個なら2列、3個以上なら折り返し
-  container.style.gridTemplateColumns = options.length <= 2 ? '1fr 1fr' : 'repeat(2, 1fr)';
-
-  container.innerHTML = options.map((name, i) => {
-    const id = `labelOpt${i}`;
-    return `<div class="label-option">
-      <input type="radio" name="labelColor" id="${id}" value="${escHtml(name)}"${i === 0 ? ' checked' : ''}>
-      <label for="${id}">
-        <div class="label-preview ${getLabelPreviewClass(name)}">${getLabelPreviewText(name)}</div>
-        <div class="label-name">${escHtml(name)}</div>
-      </label>
-    </div>`;
-  }).join('');
-}
-
-// ラベルプレビューのCSSクラスを判定
-function getLabelPreviewClass(name) {
-  if (name.includes('白') || /white/i.test(name)) return 'white';
-  if (name.includes('黒') || /black/i.test(name)) return 'black';
-  return 'custom';
-}
-
-// ラベルプレビューのテキスト
-function getLabelPreviewText(name) {
-  if (name.includes('白') || /white/i.test(name)) return 'WHITE<br>LABEL';
-  if (name.includes('黒') || /black/i.test(name)) return 'BLACK<br>LABEL';
-  // カスタムラベルは名前の先頭文字を表示
-  return escHtml(name.substring(0, 4));
-}
-
-// ===== ブレンド行追加 =====
-function addBlendRow() {
-  if (blendRowCount >= MAX_BLEND_ROWS) return;
-
-  const container = document.getElementById('blendRows');
-  blendRowCount++;
-  const rowId = `blend-${blendRowCount}`;
-
-  const div = document.createElement('div');
-  div.className = 'blend-row';
-  div.id = rowId;
-
-  // お酒選択ドロップダウン
-  const selectHtml = `<select id="sake-${rowId}" onchange="updateTotal()">
-    <option value="">-- 選択してください --</option>
-    ${sakeList.map(s => `<option value="${escHtml(s)}">${escHtml(s)}</option>`).join('')}
-  </select>`;
-
-  // ml入力スピナー
-  const mlHtml = `<div class="ml-input">
-    <input type="number" id="ml-${rowId}" value="0" min="0" max="200" step="5"
-      oninput="clampMl(this);updateTotal()" style="padding-right:34px">
-    <span class="ml-unit">ml</span>
-    <div class="ml-spinner">
-      <button type="button" onclick="stepMl('${rowId}',5)" aria-label="増加">▲</button>
-      <button type="button" onclick="stepMl('${rowId}',-5)" aria-label="減少">▼</button>
-    </div>
-  </div>`;
-
-  // 削除ボタン（1行目は削除不可）
-  const delHtml = `<button class="btn-delete" onclick="removeBlendRow('${rowId}')" title="削除">×</button>`;
-
-  div.innerHTML = selectHtml + mlHtml + delHtml;
-  container.appendChild(div);
-
-  updateAddButton();
-  updateTotal();
-}
-
-// ===== ブレンド行削除 =====
-function removeBlendRow(rowId) {
-  if (blendRowCount <= 1) return; // 最低1行は残す
-  const el = document.getElementById(rowId);
-  if (el) {
-    el.remove();
-    blendRowCount--;
-    updateAddButton();
-    updateTotal();
+// ===== 翻訳辞書 =====
+const T = {
+  ja: {
+    'header.tagline'          : 'マイブレンド体験',
+    'loading'                 : '読み込み中...',
+    'sending'                 : '送信中...',
+    'step.recipe'             : 'レシピ入力',
+    'step.confirm'            : '確認',
+    'step.done'               : '完了',
+    'step.order'              : '追加注文',
+    'section.basic'           : '基本情報',
+    'section.label'           : 'ラベルの色',
+    'section.blend'           : 'ブレンド配合',
+    'section.contact'         : '連絡先',
+    'section.confirm'         : '入力内容の確認',
+    'section.recipe.sel'      : 'レシピ選択',
+    'section.qty'             : '本数・容量',
+    'section.ship'            : '発送先',
+    'field.name'              : 'お名前',
+    'field.blender'           : 'Blender名',
+    'field.title'             : 'Title（レシピ名）',
+    'field.date'              : 'Date',
+    'field.email'             : 'メールアドレス',
+    'ph.name'                 : '例：山田 太郎',
+    'ph.blender'              : '例：Taro',
+    'ph.title'                : '例：春の宴',
+    'ph.email'                : 'example@email.com',
+    'ph.phone'                : '090-0000-0000',
+    'ph.zip'                  : '1234567（ハイフンなし）',
+    'ph.address'              : '都道府県・市区町村・番地',
+    'ph.building'             : '例：渋谷マンション101号室',
+    'ph.notes'                : '特記事項があればご記入ください',
+    'blend.sake'              : 'お酒の名前',
+    'blend.ml'                : 'ml数',
+    'blend.total'             : '合計',
+    'blend.add'               : '＋ お酒を追加する',
+    'blend.limit'             : '上限',
+    'btn.next'                : '次へ →',
+    'btn.edit'                : '修正する',
+    'btn.confirm'             : '確定する',
+    'btn.back'                : '← 戻る',
+    'btn.zip'                 : '住所検索',
+    'btn.additional'          : '追い瓶・ペアリングチェンジはいかが？',
+    'confirm.question'        : 'こちらでお間違いないでしょうか？',
+    'complete.title'          : '登録完了',
+    'complete.msg'            : 'あなたのMy Sakeのレシピが登録できました！\nあなたのレシピ詳細をメールでお送りします。',
+    'complete.id.label'       : 'あなたのブレンダーID',
+    'additional.greeting'     : 'ありがとうございます！',
+    'additional.sameRecipe'   : '最初に登録したレシピと同じ',
+    'qty.200'                 : '200ml × 本数',
+    'qty.720'                 : '720ml × 本数',
+    'ship.name'               : '宛名',
+    'ship.phone'              : '電話番号',
+    'ship.zip'                : '郵便番号',
+    'ship.address'            : '住所',
+    'ship.building'           : 'マンション名・部屋番号・建物名',
+    'ship.gift'               : 'ご自身以外の方に贈られる際はチェックを入れてください',
+    'ship.notes'              : '備考',
+    'additional.complete.title': 'ありがとうございます',
+    'additional.complete.msg' : 'ありがとうございます。\nレジにてご精算お願いいたします。',
+    'opt'                     : '（任意）',
+    'err.required'            : 'この項目は必須です',
+    'err.email'               : '正しいメールアドレスを入力してください',
+    'err.blend'               : '少なくとも1種のお酒を選択してください',
+    'err.label'               : 'ラベルの色を選択してください',
+    'err.over'                : '合計mlが目標を超えています',
+    'err.qty'                 : '本数を1本以上入力してください',
+    'err.zip'                 : '郵便番号を7桁で入力してください',
+    'zip.searching'           : '検索中...',
+    'zip.found'               : '✓ 住所を取得しました',
+    'zip.notfound'            : '住所が見つかりませんでした',
+    'zip.error'               : '検索に失敗しました',
+    'select.placeholder'      : '-- 選択してください --',
+    'conf.sakeList'           : 'レシピ',
+    'conf.sameRecipe'         : '同じレシピ',
+    'conf.diffRecipe'         : '変更あり',
+  },
+  en: {
+    'header.tagline'          : 'My Blend Experience',
+    'loading'                 : 'Loading...',
+    'sending'                 : 'Sending...',
+    'step.recipe'             : 'Recipe',
+    'step.confirm'            : 'Confirm',
+    'step.done'               : 'Done',
+    'step.order'              : 'Add Order',
+    'section.basic'           : 'Basic Info',
+    'section.label'           : 'Label Color',
+    'section.blend'           : 'Blend Recipe',
+    'section.contact'         : 'Contact',
+    'section.confirm'         : 'Confirm Details',
+    'section.recipe.sel'      : 'Recipe Selection',
+    'section.qty'             : 'Quantity',
+    'section.ship'            : 'Shipping',
+    'field.name'              : 'Name',
+    'field.blender'           : 'Blender Name',
+    'field.title'             : 'Title (Recipe Name)',
+    'field.date'              : 'Date',
+    'field.email'             : 'Email Address',
+    'ph.name'                 : 'e.g. Taro Yamada',
+    'ph.blender'              : 'e.g. Taro',
+    'ph.title'                : 'e.g. Spring Banquet',
+    'ph.email'                : 'example@email.com',
+    'ph.phone'                : '090-0000-0000',
+    'ph.zip'                  : '1234567 (no hyphen)',
+    'ph.address'              : 'Prefecture, City, Street',
+    'ph.building'             : 'e.g. Shibuya Mansion Rm.101',
+    'ph.notes'                : 'Any special requests?',
+    'blend.sake'              : 'Sake',
+    'blend.ml'                : 'ml',
+    'blend.total'             : 'Total',
+    'blend.add'               : '＋ Add Sake',
+    'blend.limit'             : 'Max',
+    'btn.next'                : 'Next →',
+    'btn.edit'                : 'Edit',
+    'btn.confirm'             : 'Submit',
+    'btn.back'                : '← Back',
+    'btn.zip'                 : 'Lookup',
+    'btn.additional'          : 'Order More / Pairing Change?',
+    'confirm.question'        : 'Does everything look correct?',
+    'complete.title'          : 'Registration Complete',
+    'complete.msg'            : 'Your My Sake recipe has been registered!\nWe will send you the details by email.',
+    'complete.id.label'       : 'Your Blender ID',
+    'additional.greeting'     : 'Thank you!',
+    'additional.sameRecipe'   : 'Same recipe as my first registration',
+    'qty.200'                 : '200ml × Bottles',
+    'qty.720'                 : '720ml × Bottles',
+    'ship.name'               : 'Recipient Name',
+    'ship.phone'              : 'Phone Number',
+    'ship.zip'                : 'Postal Code',
+    'ship.address'            : 'Address',
+    'ship.building'           : 'Apt / Building Name',
+    'ship.gift'               : 'Check if sending as a gift to someone else',
+    'ship.notes'              : 'Notes',
+    'additional.complete.title': 'Thank You',
+    'additional.complete.msg' : 'Thank you.\nPlease proceed to the register for payment.',
+    'opt'                     : '(Optional)',
+    'err.required'            : 'This field is required',
+    'err.email'               : 'Please enter a valid email address',
+    'err.blend'               : 'Please select at least one sake',
+    'err.label'               : 'Please select a label color',
+    'err.over'                : 'Total exceeds the target ml',
+    'err.qty'                 : 'Please enter at least 1 bottle',
+    'err.zip'                 : 'Please enter a 7-digit postal code',
+    'zip.searching'           : 'Searching...',
+    'zip.found'               : '✓ Address found',
+    'zip.notfound'            : 'Address not found',
+    'zip.error'               : 'Search failed',
+    'select.placeholder'      : '-- Select --',
+    'conf.sakeList'           : 'Recipe',
+    'conf.sameRecipe'         : 'Same recipe',
+    'conf.diffRecipe'         : 'Custom recipe',
   }
-}
+};
 
-// 追加ボタンの活性/非活性
-function updateAddButton() {
-  const btn = document.getElementById('btnAddRow');
-  btn.disabled = (blendRowCount >= MAX_BLEND_ROWS);
-  btn.textContent = blendRowCount >= MAX_BLEND_ROWS
-    ? `＋ お酒を追加する（上限${MAX_BLEND_ROWS}種）`
-    : `＋ お酒を追加する（最大${MAX_BLEND_ROWS}種）`;
-}
+// ===== 状態 =====
+let currentLang = localStorage.getItem('msw_lang') || 'ja';
+let sakeList    = [];
+let labelOptions = ['白ラベル', '黒ラベル'];
+let mainBlendCount = 0;
+let addBlendCount  = 0;
+let savedMainData  = {}; // STEP2表示用
+let savedBlenderId = ''; // GASから返却されたブレンダーID
 
-// ===== ml入力制御 =====
-function stepMl(rowId, delta) {
-  const input = document.getElementById(`ml-${rowId}`);
-  let val = parseInt(input.value) || 0;
-  val = Math.round((val + delta) / 5) * 5;
-  val = Math.min(200, Math.max(0, val));
-  input.value = val;
-  updateTotal();
-}
+// ===== 翻訳ヘルパー =====
+function t(key) { return T[currentLang][key] || T['ja'][key] || key; }
 
-function clampMl(input) {
-  let val = parseInt(input.value) || 0;
-  val = Math.min(200, Math.max(0, val));
-  input.value = val;
-}
-
-// ===== 合計ml更新 =====
-function updateTotal() {
-  let total = 0;
-  document.querySelectorAll('[id^="ml-blend-"]').forEach(input => {
-    total += parseInt(input.value) || 0;
-  });
-  document.getElementById('totalMl').textContent = total;
-}
-
-// ===== HTML エスケープ =====
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ===== STEP1 → STEP2 バリデーション =====
-function goStep2() {
-  let valid = true;
-
-  // レシピ名
-  const recipeName = document.getElementById('recipeName').value.trim();
-  setFieldError('fieldRecipeName', 'errRecipeName', !recipeName);
-  if (!recipeName) valid = false;
-
-  // ブレンダー名
-  const blenderName = document.getElementById('blenderName').value.trim();
-  setFieldError('fieldBlenderName', 'errBlenderName', !blenderName);
-  if (!blenderName) valid = false;
-
-  // ブレンド入力（少なくとも1行: 酒名が選択かつml > 0）
-  const rows = document.querySelectorAll('#blendRows .blend-row');
-  let hasValidBlend = false;
-  rows.forEach(row => {
-    const rowId = row.id;
-    const sakeVal = document.getElementById(`sake-${rowId}`)?.value;
-    const mlVal   = parseInt(document.getElementById(`ml-${rowId}`)?.value) || 0;
-    if (sakeVal && mlVal > 0) hasValidBlend = true;
-  });
-  const errBlend = document.getElementById('errBlend');
-  if (!hasValidBlend) {
-    errBlend.style.display = 'block';
-    valid = false;
-  } else {
-    errBlend.style.display = 'none';
-  }
-
-  // ラベル色
-  const labelChecked = document.querySelector('input[name="labelColor"]:checked');
-  const errLabel = document.getElementById('errLabel');
-  if (!labelChecked) {
-    errLabel.style.display = 'block';
-    valid = false;
-  } else {
-    errLabel.style.display = 'none';
-  }
-
-  if (!valid) return;
-
-  // STEP2へ遷移
-  showScreen('step2');
-  updateStepUI(2);
-  window.scrollTo(0, 0);
-}
-
-// ===== STEP2 → STEP1 =====
-function goStep1() {
-  showScreen('step1');
-  updateStepUI(1);
-  window.scrollTo(0, 0);
-}
-
-// ===== 送信処理 =====
-function submitForm() {
-  let valid = true;
-
-  const fullName = document.getElementById('fullName').value.trim();
-  setFieldError('fieldFullName', 'errFullName', !fullName);
-  if (!fullName) valid = false;
-
-  const email = document.getElementById('email').value.trim();
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  setFieldError('fieldEmail', 'errEmail', !emailOk);
-  if (!emailOk) valid = false;
-
-  const phone = document.getElementById('phone').value.trim();
-  setFieldError('fieldPhone', 'errPhone', !phone);
-  if (!phone) valid = false;
-
-  if (!document.getElementById('privacy').checked) {
-    alert('プライバシーポリシーへの同意が必要です。');
-    valid = false;
-  }
-
-  if (!valid) return;
-
-  // ブレンドデータ収集
-  const blends = [];
-  document.querySelectorAll('#blendRows .blend-row').forEach(row => {
-    const rowId = row.id;
-    const name = document.getElementById(`sake-${rowId}`)?.value || '';
-    const ml   = parseInt(document.getElementById(`ml-${rowId}`)?.value) || 0;
-    if (name) blends.push({ name, ml });
-  });
-
-  const labelColor = document.querySelector('input[name="labelColor"]:checked')?.value || '';
-
-  const payload = {
-    action: 'submitRecipe',
-    recipeName : document.getElementById('recipeName').value.trim(),
-    blenderName: document.getElementById('blenderName').value.trim(),
-    labelColor,
-    blends,
-    fullName,
-    email,
-    phone,
-    address: document.getElementById('address').value.trim()
-  };
-
-  // 送信
-  document.getElementById('btnSubmit').disabled = true;
-  document.getElementById('submitLoading').style.display = 'block';
-
-  fetch(GAS_URL, {
-    method: 'POST',
-    mode: 'cors',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById('completionId').textContent = data.id;
-      showScreen('stepComplete');
-      document.getElementById('stepIndicator').style.display = 'none';
-      document.getElementById('stepLabels').style.display = 'none';
-      window.scrollTo(0, 0);
+// 翻訳を全DOM要素に適用
+function applyT() {
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = t(key);
     } else {
-      alert('送信エラー: ' + (data.error || '不明なエラー'));
-      document.getElementById('btnSubmit').disabled = false;
+      el.textContent = t(key);
     }
-  })
-  .catch(err => {
-    alert('通信エラーが発生しました。しばらく経ってから再度お試しください。\n' + err);
-    document.getElementById('btnSubmit').disabled = false;
-  })
-  .finally(() => {
-    document.getElementById('submitLoading').style.display = 'none';
   });
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-ph'));
+  });
+  // 言語ボタンの強調
+  document.getElementById('btnJa').className = 'lang-btn' + (currentLang === 'ja' ? ' active' : '');
+  document.getElementById('btnEn').className = 'lang-btn' + (currentLang === 'en' ? ' active' : '');
+  // 動的に生成された要素の更新
+  updateBlendAddButton(false);
+  updateBlendAddButton(true);
+  updateTargetLabel();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('msw_lang', lang);
+  applyT();
+  // 確認画面表示中なら再描画
+  if (document.getElementById('step2').classList.contains('active'))   renderConfirmation();
+  if (document.getElementById('stepA2').classList.contains('active')) renderAdditionalConfirmation();
 }
 
 // ===== 画面切替 =====
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
-// ===== ステップUI更新 =====
-function updateStepUI(step) {
-  const dot1 = document.getElementById('dot1');
-  const dot2 = document.getElementById('dot2');
-  const line1 = document.getElementById('line1');
-  const lbl1 = document.getElementById('label1');
-  const lbl2 = document.getElementById('label2');
+// ステップインジケーター表示切替
+function showStepIndicator(flow, step) {
+  const isMain = flow === 'main';
+  document.getElementById('mainStepArea').classList.toggle('hidden', !isMain);
+  document.getElementById('addStepArea').classList.toggle('hidden', isMain);
 
-  if (step === 1) {
-    dot1.className = 'step-dot active';
-    dot2.className = 'step-dot';
-    line1.className = 'step-line';
-    lbl1.className = 'step-label active';
-    lbl2.className = 'step-label';
-  } else {
-    dot1.className = 'step-dot done';
-    dot1.textContent = '✓';
-    dot2.className = 'step-dot active';
-    line1.className = 'step-line done';
-    lbl1.className = 'step-label';
-    lbl2.className = 'step-label active';
+  const prefix = isMain ? 'm' : 'a';
+  for (let i = 1; i <= 3; i++) {
+    const dot  = document.getElementById(`${prefix}dot${i}`);
+    const lbl  = document.getElementById(`${prefix}lbl${i}`);
+    const line = i < 3 ? document.getElementById(`${prefix}line${i}`) : null;
+    if (i < step) {
+      dot.className = 'step-dot done'; dot.textContent = '✓';
+      if (line) line.className = 'step-line done';
+    } else if (i === step) {
+      dot.className = 'step-dot active'; dot.textContent = String(i);
+      if (line) line.className = 'step-line';
+    } else {
+      dot.className = 'step-dot'; dot.textContent = String(i);
+      if (line) line.className = 'step-line';
+    }
+    if (lbl) lbl.className = 'step-lbl' + (i === step ? ' active' : '');
   }
 }
 
-// ===== フィールドエラー設定 =====
-function setFieldError(fieldId, errId, hasError) {
-  const field = document.getElementById(fieldId);
-  const err   = document.getElementById(errId);
-  if (hasError) {
-    field?.classList.add('error');
-    if (err) err.style.display = 'block';
-  } else {
-    field?.classList.remove('error');
-    if (err) err.style.display = 'none';
+function hideStepIndicators() {
+  document.getElementById('mainStepArea').classList.add('hidden');
+  document.getElementById('addStepArea').classList.add('hidden');
+}
+
+// ===== 初期化 =====
+window.addEventListener('DOMContentLoaded', () => {
+  applyT();
+  document.getElementById('inDate').value = todayISO();
+  loadFormSettings();
+});
+
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// フォーム設定と酒リストを並行取得
+function loadFormSettings() {
+  Promise.all([
+    fetch(`${GAS_URL}?action=getFormSettings`).then(r => r.json()),
+    fetch(`${GAS_URL}?action=getSakeList`).then(r => r.json())
+  ])
+  .then(([settings, sakeData]) => {
+    TARGET_ML      = settings.targetMl || 40;
+    MAX_BLEND_ROWS = settings.maxRows  || 8;
+    sakeList       = sakeData.list     || [];
+    labelOptions   = settings.labelOptions || ['白ラベル', '黒ラベル'];
+
+    // 案内文
+    if (settings.guideText) {
+      document.getElementById('guideText').textContent = settings.guideText;
+      document.getElementById('guideCard').classList.remove('hidden');
+    }
+
+    // ラベル選択肢を生成
+    renderLabelOptions('labelGrid',  'lc');
+    renderLabelOptions('labelGridA', 'lca');
+
+    updateTargetLabel();
+    showScreen('step1');
+    showStepIndicator('main', 1);
+    addBlendRow(false); // 最初の1行
+  })
+  .catch(() => {
+    // エラー時はデフォルト値で続行
+    renderLabelOptions('labelGrid',  'lc');
+    renderLabelOptions('labelGridA', 'lca');
+    updateTargetLabel();
+    showScreen('step1');
+    showStepIndicator('main', 1);
+    addBlendRow(false);
+  });
+}
+
+function updateTargetLabel() {
+  document.getElementById('targetLbl').textContent  = `${t('blend.total')}：${TARGET_ML}ml`;
+  document.getElementById('targetLblA').textContent = `${t('blend.total')}：${TARGET_ML}ml`;
+}
+
+// ===== ラベル選択肢生成 =====
+function renderLabelOptions(containerId, namePrefix) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = labelOptions.map((name, i) => {
+    const id  = `${namePrefix}-${i}`;
+    const cls = getLabelClass(name);
+    const txt = getLabelText(name);
+    return `<div class="label-opt" style="position:relative">
+      <input type="radio" name="${namePrefix}" id="${id}" value="${esc(name)}"${i===0?' checked':''}>
+      <label for="${id}">
+        <div class="label-preview ${cls}">${txt}</div>
+        <div class="label-name">${esc(name)}</div>
+      </label>
+    </div>`;
+  }).join('');
+}
+function getLabelClass(n) {
+  if (n.includes('白')||/white/i.test(n)) return 'white';
+  if (n.includes('黒')||/black/i.test(n)) return 'black';
+  return 'custom';
+}
+function getLabelText(n) {
+  if (n.includes('白')||/white/i.test(n)) return 'WHITE<br>LABEL';
+  if (n.includes('黒')||/black/i.test(n)) return 'BLACK<br>LABEL';
+  return esc(n.substring(0,4));
+}
+
+// ===== ブレンド行管理 =====
+function addBlendRow(isAdd) {
+  const count = isAdd ? addBlendCount : mainBlendCount;
+  if (count >= MAX_BLEND_ROWS) return;
+
+  const containerId = isAdd ? 'blendRowsA' : 'blendRows';
+  const prefix      = isAdd ? 'ab' : 'b';
+  const newCount    = count + 1;
+  if (isAdd) addBlendCount = newCount; else mainBlendCount = newCount;
+  const rowId = `${prefix}-${newCount}`;
+
+  const div = document.createElement('div');
+  div.className = 'blend-row';
+  div.id = `row-${rowId}`;
+
+  const opts = sakeList.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  div.innerHTML = `
+    <select id="sake-${rowId}" onchange="updateTotal(${isAdd})">
+      <option value="">${t('select.placeholder')}</option>${opts}
+    </select>
+    <div class="ml-wrap">
+      <input type="number" id="ml-${rowId}" value="0" min="0" max="${TARGET_ML}" step="5"
+        oninput="clampMl(this);updateTotal(${isAdd})" style="padding-right:34px">
+      <span class="ml-unit">ml</span>
+      <div class="ml-spin">
+        <button type="button" onclick="stepMl('${rowId}',5,${isAdd})">▲</button>
+        <button type="button" onclick="stepMl('${rowId}',-5,${isAdd})">▼</button>
+      </div>
+    </div>
+    <button class="btn-del" onclick="removeBlendRow('${rowId}',${isAdd})">×</button>`;
+
+  document.getElementById(containerId).appendChild(div);
+  updateBlendAddButton(isAdd);
+  updateTotal(isAdd);
+}
+
+function removeBlendRow(rowId, isAdd) {
+  const count = isAdd ? addBlendCount : mainBlendCount;
+  if (count <= 1) return;
+  const el = document.getElementById(`row-${rowId}`);
+  if (el) { el.remove(); if (isAdd) addBlendCount--; else mainBlendCount--; }
+  updateBlendAddButton(isAdd);
+  updateTotal(isAdd);
+}
+
+function updateBlendAddButton(isAdd) {
+  const btn   = document.getElementById(isAdd ? 'btnAddBlendA' : 'btnAddBlend');
+  if (!btn) return;
+  const count = isAdd ? addBlendCount : mainBlendCount;
+  const at    = count >= MAX_BLEND_ROWS;
+  btn.disabled = at;
+  btn.textContent = at
+    ? `${t('blend.limit')} ${MAX_BLEND_ROWS}`
+    : `${t('blend.add')}（${t('blend.limit')} ${MAX_BLEND_ROWS}）`;
+}
+
+function stepMl(rowId, delta, isAdd) {
+  const inp = document.getElementById(`ml-${rowId}`);
+  let v = Math.round(((parseInt(inp.value)||0) + delta) / 5) * 5;
+  inp.value = Math.min(TARGET_ML, Math.max(0, v));
+  updateTotal(isAdd);
+}
+
+function clampMl(inp) {
+  let v = parseInt(inp.value) || 0;
+  inp.value = Math.min(TARGET_ML, Math.max(0, v));
+}
+
+function updateTotal(isAdd) {
+  const prefix  = isAdd ? 'ab' : 'b';
+  const totalId = isAdd ? 'totalMlA' : 'totalMl';
+  const errId   = isAdd ? 'eTotalA'  : 'eTotal';
+  let total = 0;
+  document.querySelectorAll(`[id^="ml-${prefix}-"]`).forEach(inp => { total += parseInt(inp.value)||0; });
+  document.getElementById(totalId).textContent = total;
+  const valEl = document.getElementById(totalId);
+  valEl.className = total > TARGET_ML ? 'total-over' : '';
+  const errEl = document.getElementById(errId);
+  if (errEl) { errEl.classList.toggle('show', total > TARGET_ML); }
+  return total;
+}
+
+// ===== STEP 1 → STEP 2 =====
+function goStep2() {
+  let ok = true;
+  ok = req('fName',  'eName',  document.getElementById('inName').value.trim())  && ok;
+  ok = req('fBlender','eBlender',document.getElementById('inBlender').value.trim()) && ok;
+  ok = req('fTitle', 'eTitle', document.getElementById('inTitle').value.trim()) && ok;
+  ok = req('fDate',  'eDate',  document.getElementById('inDate').value)          && ok;
+
+  // ラベル
+  const lc = document.querySelector('input[name="lc"]:checked');
+  setErr('eLabel', !lc); if (!lc) ok = false;
+
+  // ブレンド
+  const hasBlend = [...document.querySelectorAll('[id^="sake-b-"]')].some(s => s.value);
+  const totalOver = updateTotal(false) > TARGET_ML;
+  setErr('eBlend', !hasBlend); if (!hasBlend) ok = false;
+  if (totalOver) ok = false;
+
+  // メール
+  const email = document.getElementById('inEmail').value.trim();
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  setErr('eEmail', !emailOk, 'fEmail'); if (!emailOk) ok = false;
+
+  if (!ok) return;
+
+  // データを保存
+  savedMainData = {
+    name        : document.getElementById('inName').value.trim(),
+    blenderName : document.getElementById('inBlender').value.trim(),
+    recipeName  : document.getElementById('inTitle').value.trim(),
+    date        : document.getElementById('inDate').value,
+    labelColor  : lc.value,
+    blends      : collectBlends(false),
+    email       : email,
+  };
+
+  renderConfirmation();
+  showScreen('step2');
+  showStepIndicator('main', 2);
+}
+
+// STEP2 → STEP1
+function goStep1() {
+  showScreen('step1');
+  showStepIndicator('main', 1);
+}
+
+// 確認画面を描画
+function renderConfirmation() {
+  const d   = savedMainData;
+  const blendHtml = d.blends.map(b => `<span class="conf-blend-chip">${esc(b.name)} ${b.ml}ml</span>`).join('');
+  document.getElementById('confirmList').innerHTML = `
+    ${row(t('field.name'),    d.name)}
+    ${row(t('field.blender'), d.blenderName)}
+    ${row(t('field.title'),   d.recipeName)}
+    ${row(t('field.date'),    d.date.replace(/-/g,'/'))}
+    ${row(t('section.label'), d.labelColor)}
+    <div class="confirm-row">
+      <div class="conf-lbl">${t('conf.sakeList')}</div>
+      <div class="conf-val"><div class="conf-blend-items">${blendHtml}</div></div>
+    </div>
+    ${row(t('field.email'), d.email)}`;
+}
+function row(lbl, val) {
+  return `<div class="confirm-row"><div class="conf-lbl">${esc(lbl)}</div><div class="conf-val">${esc(String(val))}</div></div>`;
+}
+
+// ===== レシピ送信（STEP2 → GAS → STEP3）=====
+function submitRecipe() {
+  document.getElementById('btnConfirm').disabled = true;
+  document.getElementById('submitLoading').classList.remove('hidden');
+
+  fetch(GAS_URL, {
+    method : 'POST', mode: 'cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body   : JSON.stringify({ action: 'submitRecipe', ...savedMainData })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // 完了画面の表示（GASから返却されたブレンダーIDを保存・表示）
+      savedBlenderId = String(data.blenderId || '');
+      const msg = t('complete.msg').replace(/\\n/g, '\n');
+      document.getElementById('completeMsgText').innerHTML = msg.split('\n').join('<br>');
+      document.getElementById('displayId').textContent = savedBlenderId;
+      showScreen('step3');
+      showStepIndicator('main', 3);
+    } else {
+      alert('エラー: ' + (data.error || '不明なエラー'));
+      document.getElementById('btnConfirm').disabled = false;
+    }
+  })
+  .catch(err => {
+    alert('通信エラー: ' + err);
+    document.getElementById('btnConfirm').disabled = false;
+  })
+  .finally(() => {
+    document.getElementById('submitLoading').classList.add('hidden');
+  });
+}
+
+// ===== STEP3 → STEP A1 =====
+function goStepA1() {
+  // 追加注文フォームを初期化
+  document.getElementById('chkSameRecipe').checked = true;
+  document.getElementById('additionalRecipeSection').classList.add('hidden');
+  document.getElementById('qty200').value = '0';
+  document.getElementById('qty720').value = '0';
+  // 今日の日付をセット
+  if (document.getElementById('inADate').value === '')
+    document.getElementById('inADate').value = todayISO();
+  showScreen('stepA1');
+  showStepIndicator('add', 1);
+}
+
+// 「同じレシピ」チェックボックス切替
+function toggleAdditionalRecipe() {
+  const checked = document.getElementById('chkSameRecipe').checked;
+  const section = document.getElementById('additionalRecipeSection');
+  section.classList.toggle('hidden', checked);
+  if (!checked && addBlendCount === 0) {
+    // 初めて展開した場合、1行追加
+    addBlendRow(true);
   }
+}
+
+// ===== STEP A1 → STEP A2 =====
+function goStepA2() {
+  let ok = true;
+  const sameRecipe = document.getElementById('chkSameRecipe').checked;
+
+  if (!sameRecipe) {
+    ok = req('fATitle', 'eATitle', document.getElementById('inATitle').value.trim()) && ok;
+    ok = req('fADate',  'eADate',  document.getElementById('inADate').value)           && ok;
+    const lca = document.querySelector('input[name="lca"]:checked');
+    setErr('eALabel', !lca); if (!lca) ok = false;
+    const hasBlendA = [...document.querySelectorAll('[id^="sake-ab-"]')].some(s => s.value);
+    const overA     = updateTotal(true) > TARGET_ML;
+    setErr('eBlendA', !hasBlendA); if (!hasBlendA) ok = false;
+    if (overA) ok = false;
+  }
+
+  // 本数チェック
+  const q200 = parseInt(document.getElementById('qty200').value) || 0;
+  const q720 = parseInt(document.getElementById('qty720').value) || 0;
+  setErr('eQty', q200 + q720 === 0); if (q200 + q720 === 0) ok = false;
+
+  // 発送先
+  ok = req('fRecipient', 'eRecipient', document.getElementById('inRecipient').value.trim()) && ok;
+  ok = req('fShipPhone', 'eShipPhone', document.getElementById('inShipPhone').value.trim())  && ok;
+  const zip = document.getElementById('inZip').value.replace(/-/g,'').trim();
+  const zipOk = /^\d{7}$/.test(zip);
+  setErr('eZip', !zipOk); if (!zipOk) ok = false;
+  ok = req('fAddress', 'eAddress', document.getElementById('inAddress').value.trim()) && ok;
+
+  if (!ok) return;
+
+  renderAdditionalConfirmation();
+  showScreen('stepA2');
+  showStepIndicator('add', 2);
+}
+
+// 追加注文確認画面を描画
+function renderAdditionalConfirmation() {
+  const sameRecipe = document.getElementById('chkSameRecipe').checked;
+  const q200 = parseInt(document.getElementById('qty200').value) || 0;
+  const q720 = parseInt(document.getElementById('qty720').value) || 0;
+
+  let recipeHtml = row(t('conf.sakeList'), sameRecipe ? t('conf.sameRecipe') : t('conf.diffRecipe'));
+  if (!sameRecipe) {
+    const lcaEl = document.querySelector('input[name="lca"]:checked');
+    const blendHtml = collectBlends(true).map(b => `<span class="conf-blend-chip">${esc(b.name)} ${b.ml}ml</span>`).join('');
+    recipeHtml += row(t('field.title'), document.getElementById('inATitle').value);
+    recipeHtml += row(t('field.date'),  document.getElementById('inADate').value.replace(/-/g,'/'));
+    recipeHtml += row(t('section.label'), lcaEl ? lcaEl.value : '');
+    recipeHtml += `<div class="confirm-row"><div class="conf-lbl">Recipe</div><div class="conf-val"><div class="conf-blend-items">${blendHtml}</div></div></div>`;
+  }
+
+  document.getElementById('confirmListA').innerHTML = `
+    ${recipeHtml}
+    ${row('200ml', q200 + '本')}
+    ${row('720ml', q720 + '本')}
+    ${row(t('ship.name'),    document.getElementById('inRecipient').value)}
+    ${row(t('ship.phone'),   document.getElementById('inShipPhone').value)}
+    ${row(t('ship.zip'),     document.getElementById('inZip').value)}
+    ${row(t('ship.address'), document.getElementById('inAddress').value + (document.getElementById('inBuilding').value ? ' ' + document.getElementById('inBuilding').value : ''))}
+    ${document.getElementById('chkGift').checked ? row(t('ship.gift'), '✓') : ''}
+    ${document.getElementById('inNotes').value ? row(t('ship.notes'), document.getElementById('inNotes').value) : ''}`;
+}
+
+function goBackA1() {
+  showScreen('stepA1');
+  showStepIndicator('add', 1);
+}
+
+// ===== 追加注文送信（STEP A2 → GAS → STEP A3）=====
+function submitAdditionalOrder() {
+  document.getElementById('btnConfirmA').disabled = true;
+  document.getElementById('submitLoadingA').classList.remove('hidden');
+
+  const sameRecipe = document.getElementById('chkSameRecipe').checked;
+  const lcaEl = document.querySelector('input[name="lca"]:checked');
+
+  const payload = {
+    action      : 'submitAdditionalOrder',
+    originalId  : savedBlenderId,
+    sameRecipe,
+    recipeName  : sameRecipe ? '' : document.getElementById('inATitle').value.trim(),
+    date        : sameRecipe ? '' : document.getElementById('inADate').value,
+    labelColor  : sameRecipe ? '' : (lcaEl ? lcaEl.value : ''),
+    blends      : sameRecipe ? [] : collectBlends(true),
+    qty200      : parseInt(document.getElementById('qty200').value) || 0,
+    qty720      : parseInt(document.getElementById('qty720').value) || 0,
+    recipientName: document.getElementById('inRecipient').value.trim(),
+    phone       : document.getElementById('inShipPhone').value.trim(),
+    zipcode     : document.getElementById('inZip').value.replace(/-/g,'').trim(),
+    address     : document.getElementById('inAddress').value.trim(),
+    building    : document.getElementById('inBuilding').value.trim(),
+    isGift      : document.getElementById('chkGift').checked,
+    notes       : document.getElementById('inNotes').value.trim(),
+  };
+
+  fetch(GAS_URL, {
+    method : 'POST', mode: 'cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body   : JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showScreen('stepA3');
+      showStepIndicator('add', 3);
+    } else {
+      alert('エラー: ' + (data.error || '不明なエラー'));
+      document.getElementById('btnConfirmA').disabled = false;
+    }
+  })
+  .catch(err => {
+    alert('通信エラー: ' + err);
+    document.getElementById('btnConfirmA').disabled = false;
+  })
+  .finally(() => {
+    document.getElementById('submitLoadingA').classList.add('hidden');
+  });
+}
+
+// ===== 数量スピナー =====
+function changeQty(id, delta) {
+  const inp = document.getElementById(id);
+  inp.value = Math.max(0, (parseInt(inp.value)||0) + delta);
+  setErr('eQty', false);
+}
+
+// ===== 郵便番号 → 住所自動補完 =====
+function lookupZip() {
+  const zip = document.getElementById('inZip').value.replace(/-/g, '').trim();
+  const msg = document.getElementById('zipMsg');
+  if (!/^\d{7}$/.test(zip)) { msg.textContent = t('err.zip'); return; }
+
+  msg.textContent = t('zip.searching');
+  fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zip}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.results && data.results[0]) {
+        const r = data.results[0];
+        document.getElementById('inAddress').value = r.address1 + r.address2 + r.address3;
+        msg.textContent = t('zip.found');
+        setErr('eZip', false);
+        setErr('eAddress', false, 'fAddress');
+      } else {
+        msg.textContent = t('zip.notfound');
+      }
+    })
+    .catch(() => { msg.textContent = t('zip.error'); });
+}
+
+// ===== ブレンドデータ収集 =====
+function collectBlends(isAdd) {
+  const prefix = isAdd ? 'ab' : 'b';
+  const result = [];
+  document.querySelectorAll(`[id^="sake-${prefix}-"]`).forEach(sel => {
+    if (!sel.value) return;
+    const rowId = sel.id.replace('sake-', '');
+    const ml    = parseInt(document.getElementById(`ml-${rowId}`).value) || 0;
+    result.push({ name: sel.value, ml });
+  });
+  return result;
+}
+
+// ===== バリデーションヘルパー =====
+function req(fieldId, errId, value) {
+  const has = !!value;
+  setErr(errId, !has, fieldId);
+  return has;
+}
+function setErr(errId, hasError, fieldId) {
+  const err = document.getElementById(errId);
+  if (err) err.classList.toggle('show', hasError);
+  if (fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) field.classList.toggle('has-error', hasError);
+  }
+}
+
+// ===== HTML エスケープ =====
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
