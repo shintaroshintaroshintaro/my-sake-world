@@ -38,316 +38,156 @@
       align-items: center;
       justify-content: space-between;
     }
-    .header-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 2px;
-    }
-    .header-sub {
-      font-size: 10px;
-      color: #a89070;
-      margin-top: 2px;
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .header-title { font-size: 16px; font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+    .header-sub   { font-size: 10px; color: #a89070; margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
     .badge {
-      background: #E74C3C;
-      color: #fff;
-      border-radius: 20px;
-      padding: 4px 10px;
-      font-size: 13px;
-      font-weight: 700;
-      min-width: 28px;
-      text-align: center;
-      display: none;
+      background: #E74C3C; color: #fff; border-radius: 20px;
+      padding: 4px 10px; font-size: 13px; font-weight: 700;
+      min-width: 28px; text-align: center; display: none;
     }
     .badge.visible { display: inline-block; }
     .btn-logout {
-      background: transparent;
-      border: 1px solid #a89070;
-      color: #a89070;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
+      background: transparent; border: 1px solid #a89070; color: #a89070;
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
       font-family: 'Noto Serif JP', serif;
     }
     .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
 
     /* ===== メイン ===== */
-    .main {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-    }
+    .main { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
 
     /* ===== フィルターバー ===== */
-    .filter-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
     .filter-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border);
-      background: #fff;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 13px;
-      cursor: pointer;
-      color: var(--text-muted);
-      transition: all 0.2s;
+      padding: 8px 16px; border-radius: 20px; border: 1.5px solid var(--border);
+      background: #fff; font-family: 'Noto Serif JP', serif; font-size: 13px;
+      cursor: pointer; color: var(--text-muted); transition: all 0.2s;
     }
-    .filter-btn.active {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #fff;
+    .filter-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+    .btn-refresh {
+      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif; margin-left: auto;
     }
+    .btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
 
-    /* ===== 注文カード ===== */
-    .order-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
-      transition: all 0.3s;
+    /* ===== ナビゲーションバー ===== */
+    .nav-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; background: var(--bg-card);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 16px;
     }
-    .order-card.confirmed {
-      background: #F8F8F8;
-      border-color: #ddd;
-      opacity: 0.65;
+    .nav-btn {
+      padding: 10px 24px; background: var(--gold); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 15px;
+      font-weight: 600; cursor: pointer; transition: background 0.2s; letter-spacing: 1px;
     }
+    .nav-btn:hover { background: var(--gold-light); }
+    .nav-btn:disabled { background: #ccc; cursor: default; }
+    .nav-indicator { font-size: 16px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; }
 
-    .card-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-      gap: 8px;
+    /* ===== レシピカード（大画面） ===== */
+    .recipe-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
     }
-    .card-id {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 1px;
-      word-break: break-all;
-    }
-    .card-date {
-      font-size: 11px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .recipe-card.confirmed { opacity: 0.65; background: #F8F8F8; }
 
-    .card-recipe {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 4px;
+    .recipe-card-header {
+      background: var(--text); padding: 18px 24px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
     }
-    .card-blender {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
+    .recipe-blender-id { font-size: 28px; font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+    .recipe-date       { font-size: 13px; color: #a89070; margin-top: 6px; }
 
-    .blend-list {
-      background: var(--gold-pale);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
+    .recipe-body { padding: 28px 24px 20px; }
+
+    .recipe-title {
+      font-size: 36px; font-weight: 700; color: var(--text);
+      line-height: 1.3; margin-bottom: 8px; word-break: break-all;
     }
-    .blend-list-title {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-    .blend-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .recipe-blender-name { font-size: 20px; color: var(--text-muted); margin-bottom: 28px; }
+
+    /* ===== ブレンド配合 ===== */
+    .blend-section { margin-bottom: 24px; }
+    .blend-section-title {
+      font-size: 12px; font-weight: 600; color: var(--gold);
+      letter-spacing: 2px; margin-bottom: 14px;
     }
     .blend-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 12px;
+      display: flex; align-items: baseline; gap: 14px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
     }
-    .blend-item .sake-name { font-weight: 600; color: var(--text); }
-    .blend-item .sake-ml  { color: var(--gold); font-size: 11px; }
+    .blend-item:last-child { border-bottom: none; }
+    .blend-sake-name { font-size: 26px; font-weight: 600; color: var(--text); flex: 1; }
+    .blend-sake-ml   { font-size: 26px; font-weight: 700; color: var(--gold); white-space: nowrap; }
 
+    /* ===== ラベル色タグ ===== */
     .label-tag {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 10px;
+      display: inline-block; padding: 6px 16px; border-radius: 20px;
+      font-size: 14px; font-weight: 600;
     }
-    .label-tag.white-label {
-      background: #f0f0f0;
-      color: #555;
-      border: 1px solid #ccc;
-    }
-    .label-tag.black-label {
-      background: #1a1a1a;
-      color: #fff;
-    }
+    .label-tag.white-label  { background: #f0f0f0; color: #555; border: 1px solid #ccc; }
+    .label-tag.black-label  { background: #1a1a1a; color: #fff; }
+    .label-tag.custom-label { background: var(--gold-pale); color: var(--gold); border: 1px solid var(--gold); }
 
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+    /* ===== フッター ===== */
+    .recipe-footer {
+      padding: 18px 24px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; background: #FAFAF8;
     }
-    .confirmed-status {
-      font-size: 12px;
-      color: #27AE60;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
+    .confirmed-status { font-size: 17px; color: #27AE60; font-weight: 600; }
     .btn-confirm {
-      padding: 10px 20px;
-      background: var(--gold);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      letter-spacing: 1px;
+      padding: 14px 36px; background: var(--gold); color: #fff; border: none;
+      border-radius: 10px; font-family: 'Noto Serif JP', serif; font-size: 16px;
+      font-weight: 600; cursor: pointer; transition: background 0.2s; letter-spacing: 1px;
     }
-    .btn-confirm:hover  { background: var(--gold-light); }
-    .btn-confirm:active { background: #8B6508; }
-    .btn-confirm:disabled {
-      background: #ccc;
-      cursor: default;
-    }
+    .btn-confirm:hover   { background: var(--gold-light); }
+    .btn-confirm:active  { background: #8B6508; }
+    .btn-confirm:disabled { background: #ccc; cursor: default; }
 
-    /* ===== 空状態 ===== */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-    .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-text { font-size: 15px; }
-
-    /* ===== ローディング ===== */
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-    }
+    /* ===== 空状態 / ローディング ===== */
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    .empty-icon  { font-size: 48px; margin-bottom: 16px; }
+    .empty-text  { font-size: 16px; }
+    .loading { text-align: center; padding: 80px 20px; }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--gold-pale);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      width: 40px; height: 40px; border: 3px solid var(--gold-pale);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 16px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===== ログイン画面 ===== */
     .login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: var(--bg);
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 20px; background: var(--bg);
     }
     .login-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 36px 28px;
-      width: 100%;
-      max-width: 360px;
-      box-shadow: var(--shadow);
-      text-align: center;
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 36px 28px; width: 100%; max-width: 360px;
+      box-shadow: var(--shadow); text-align: center;
     }
-    .login-logo {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-    }
-    .login-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-      letter-spacing: 1px;
-    }
+    .login-logo     { font-size: 20px; font-weight: 700; color: var(--gold); letter-spacing: 2px; margin-bottom: 6px; }
+    .login-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; letter-spacing: 1px; }
     .login-card input[type="password"] {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;
-      font-family: 'Noto Serif JP', serif;
-      outline: none;
-      margin-bottom: 16px;
-      text-align: center;
-      letter-spacing: 4px;
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 16px; font-family: 'Noto Serif JP', serif;
+      outline: none; margin-bottom: 16px; text-align: center; letter-spacing: 4px;
     }
     .login-card input:focus { border-color: var(--gold); }
-    .login-error {
-      color: #C0392B;
-      font-size: 12px;
-      margin-bottom: 12px;
-      display: none;
-    }
+    .login-error { color: #C0392B; font-size: 12px; margin-bottom: 12px; display: none; }
     .btn-login {
-      width: 100%;
-      padding: 14px;
-      background: var(--gold);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 2px;
+      width: 100%; padding: 14px; background: var(--gold); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 2px;
       box-shadow: 0 4px 14px rgba(184,134,11,0.3);
     }
     .btn-login:active { background: #8B6508; }
-
-    /* ===== アプリ画面（ログイン後）===== */
     .app-screen { display: none; }
-
-    /* ===== 更新ボタン ===== */
-    .btn-refresh {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: 'Noto Serif JP', serif;
-    }
-    .btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
   </style>
 </head>
 <body>
@@ -381,31 +221,43 @@
 
   <!-- メイン -->
   <div class="main">
+
     <!-- フィルター -->
     <div class="filter-bar">
       <button class="filter-btn active" onclick="setFilter('all', this)">すべて</button>
       <button class="filter-btn" onclick="setFilter('unconfirmed', this)">未確認のみ</button>
       <button class="filter-btn" onclick="setFilter('confirmed', this)">確認済みのみ</button>
-      <button class="btn-refresh" onclick="loadOrders()" style="margin-left:auto">↻ 更新</button>
+      <button class="btn-refresh" onclick="loadOrders()">↻ 更新</button>
     </div>
 
-    <div id="orderList">
+    <!-- ナビゲーション（レシピあるときのみ表示） -->
+    <div class="nav-bar" id="navBar" style="display:none">
+      <button class="nav-btn" id="btnPrev" onclick="prevRecipe()">← 前へ</button>
+      <span class="nav-indicator" id="navIndicator">1 / 1</span>
+      <button class="nav-btn" id="btnNext" onclick="nextRecipe()">次へ →</button>
+    </div>
+
+    <!-- レシピ表示エリア -->
+    <div id="recipeDisplay">
       <div class="loading">
         <div class="spinner"></div>
         <p style="color:var(--text-muted);font-size:13px">読み込み中...</p>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 // ===== 設定 =====
-const GAS_URL  = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
-const PASSWORD = 'brewery2024';
+const GAS_URL     = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
+const PASSWORD    = 'brewery2024';
 const SESSION_KEY = 'msw_brewery_auth';
 
-let allOrders = [];
-let currentFilter = 'all';
+let allOrders      = [];
+let filteredOrders = [];
+let currentIndex   = 0;
+let currentFilter  = 'all';
 
 // ===== ログイン =====
 function doLogin() {
@@ -413,7 +265,7 @@ function doLogin() {
   if (pw === PASSWORD) {
     sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('appScreen').style.display   = 'block';
     loadOrders();
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -427,32 +279,31 @@ function doLogout() {
   location.reload();
 }
 
-// セッション確認
 window.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem(SESSION_KEY) === '1') {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('appScreen').style.display   = 'block';
     loadOrders();
   }
 });
 
 // ===== 注文一覧取得 =====
 function loadOrders() {
-  document.getElementById('orderList').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <p style="color:var(--text-muted);font-size:13px">読み込み中...</p>
-    </div>`;
+  document.getElementById('recipeDisplay').innerHTML = `
+    <div class="loading"><div class="spinner"></div>
+    <p style="color:var(--text-muted);font-size:13px">読み込み中...</p></div>`;
+  document.getElementById('navBar').style.display = 'none';
 
   fetch(`${GAS_URL}?action=getOrders&role=brewery`)
     .then(r => r.json())
     .then(data => {
       allOrders = data.orders || [];
-      renderOrders();
+      applyFilter();
     })
     .catch(err => {
-      document.getElementById('orderList').innerHTML =
-        `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">読み込みエラー<br><small>${err}</small></div></div>`;
+      document.getElementById('recipeDisplay').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div>
+        <div class="empty-text">読み込みエラー<br><small>${esc(String(err))}</small></div></div>`;
     });
 }
 
@@ -461,39 +312,59 @@ function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderOrders();
+  applyFilter();
 }
 
-// ===== 注文カード描画 =====
-function renderOrders() {
-  // 未確認件数
+function applyFilter() {
+  // 未確認バッジを更新
   const unconfirmedCount = allOrders.filter(o => !o['確認済み']).length;
   const badge = document.getElementById('unconfirmedBadge');
   badge.textContent = unconfirmedCount;
-  badge.className = unconfirmedCount > 0 ? 'badge visible' : 'badge';
+  badge.className   = unconfirmedCount > 0 ? 'badge visible' : 'badge';
 
-  // フィルタリング
-  let filtered = allOrders;
-  if (currentFilter === 'unconfirmed') filtered = allOrders.filter(o => !o['確認済み']);
-  if (currentFilter === 'confirmed')   filtered = allOrders.filter(o =>  o['確認済み']);
+  if      (currentFilter === 'unconfirmed') filteredOrders = allOrders.filter(o => !o['確認済み']);
+  else if (currentFilter === 'confirmed')   filteredOrders = allOrders.filter(o =>  o['確認済み']);
+  else filteredOrders = [...allOrders];
 
-  if (filtered.length === 0) {
-    document.getElementById('orderList').innerHTML = `
+  currentIndex = 0;
+  renderCurrentRecipe();
+}
+
+// ===== 前へ / 次へ =====
+function prevRecipe() {
+  if (currentIndex > 0) { currentIndex--; renderCurrentRecipe(); }
+}
+function nextRecipe() {
+  if (currentIndex < filteredOrders.length - 1) { currentIndex++; renderCurrentRecipe(); }
+}
+
+// ===== 現在のレシピを描画 =====
+function renderCurrentRecipe() {
+  const navBar = document.getElementById('navBar');
+
+  if (filteredOrders.length === 0) {
+    navBar.style.display = 'none';
+    document.getElementById('recipeDisplay').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📋</div>
-        <div class="empty-text">注文がありません</div>
+        <div class="empty-text">表示できるレシピがありません</div>
       </div>`;
     return;
   }
 
-  const html = filtered.map(order => renderCard(order)).join('');
-  document.getElementById('orderList').innerHTML = html;
+  navBar.style.display = 'flex';
+  document.getElementById('navIndicator').textContent = `${currentIndex + 1} / ${filteredOrders.length}`;
+  document.getElementById('btnPrev').disabled = currentIndex === 0;
+  document.getElementById('btnNext').disabled = currentIndex === filteredOrders.length - 1;
+
+  document.getElementById('recipeDisplay').innerHTML = renderRecipeCard(filteredOrders[currentIndex]);
 }
 
-function renderCard(order) {
+// ===== レシピカード HTML 生成 =====
+function renderRecipeCard(order) {
   const id        = esc(order['ブレンダーID'] || '-');
   const date      = esc(formatDate(order['受信日時']));
-  const recipe    = esc(order['レシピ名']   || '(レシピ名なし)');
+  const recipe    = esc(order['レシピ名']     || '(レシピ名なし)');
   const blender   = esc(order['ブレンダー名'] || '-');
   const label     = order['ラベル色'] || '';
   const confirmed = !!order['確認済み'];
@@ -505,35 +376,39 @@ function renderCard(order) {
     const ml   = order[`酒${i}ml`];
     if (name) {
       blendHtml += `<div class="blend-item">
-        <span class="sake-name">${esc(name)}</span>
-        <span class="sake-ml">${ml}ml</span>
+        <span class="blend-sake-name">${esc(name)}</span>
+        <span class="blend-sake-ml">${ml} ml</span>
       </div>`;
     }
   }
 
   // ラベルタグ
-  const labelClass = label === '黒ラベル' ? 'black-label' : 'white-label';
-  const labelHtml  = `<span class="label-tag ${labelClass}">${esc(label)}</span>`;
+  const labelClass = label === '黒ラベル' ? 'black-label' : (label === '白ラベル' ? 'white-label' : 'custom-label');
+  const labelHtml  = label ? `<span class="label-tag ${labelClass}">${esc(label)}</span>` : '';
 
-  // 確認ボタン or 確認済みステータス
+  // フッター
   const footerHtml = confirmed
-    ? `<div class="confirmed-status">✓ 確認済み</div>`
-    : `<button class="btn-confirm" onclick="confirmOrder('${id}', this)">確認済みにする</button>`;
+    ? `<div class="confirmed-status">✓ 確認済み</div><div></div>`
+    : `<div></div><button class="btn-confirm" onclick="confirmOrder('${id}', this)">確認済みにする</button>`;
 
   return `
-    <div class="order-card ${confirmed ? 'confirmed' : ''}" id="card-${id}">
-      <div class="card-head">
-        <div class="card-id">${id}</div>
-        <div class="card-date">${date}</div>
+    <div class="recipe-card ${confirmed ? 'confirmed' : ''}">
+      <div class="recipe-card-header">
+        <div>
+          <div class="recipe-blender-id"># ${id}</div>
+          <div class="recipe-date">${date}</div>
+        </div>
+        ${labelHtml ? `<div style="padding-top:4px">${labelHtml}</div>` : ''}
       </div>
-      <div class="card-recipe">${recipe}</div>
-      <div class="card-blender">ブレンダー：${blender}</div>
-      <div class="blend-list">
-        <div class="blend-list-title">BLEND RECIPE</div>
-        <div class="blend-items">${blendHtml || '<span style="color:var(--text-muted);font-size:12px">データなし</span>'}</div>
+      <div class="recipe-body">
+        <div class="recipe-title">${recipe}</div>
+        <div class="recipe-blender-name">ブレンダー：${blender}</div>
+        <div class="blend-section">
+          <div class="blend-section-title">BLEND RECIPE</div>
+          ${blendHtml || '<p style="color:var(--text-muted);font-size:16px">データなし</p>'}
+        </div>
       </div>
-      ${labelHtml}
-      <div class="card-footer">${footerHtml}</div>
+      <div class="recipe-footer">${footerHtml}</div>
     </div>`;
 }
 
@@ -541,7 +416,7 @@ function renderCard(order) {
 function confirmOrder(id, btn) {
   if (!confirm(`${id} を確認済みにしますか？`)) return;
 
-  btn.disabled  = true;
+  btn.disabled    = true;
   btn.textContent = '送信中...';
 
   fetch(GAS_URL, {
@@ -553,21 +428,10 @@ function confirmOrder(id, btn) {
   .then(r => r.json())
   .then(data => {
     if (data.success) {
-      // ローカルデータ更新
+      // ローカルデータを更新してフィルターを再適用
       const order = allOrders.find(o => String(o['ブレンダーID']) === id);
       if (order) order['確認済み'] = '✓';
-      // カードをグレーアウト
-      const card = document.getElementById(`card-${id}`);
-      if (card) {
-        card.classList.add('confirmed');
-        card.querySelector('.card-footer').innerHTML =
-          `<div class="confirmed-status">✓ 確認済み</div>`;
-      }
-      // バッジ更新
-      const unconfirmedCount = allOrders.filter(o => !o['確認済み']).length;
-      const badge = document.getElementById('unconfirmedBadge');
-      badge.textContent = unconfirmedCount;
-      badge.className   = unconfirmedCount > 0 ? 'badge visible' : 'badge';
+      applyFilter();
     } else {
       alert('更新エラー: ' + (data.error || '不明なエラー'));
       btn.disabled    = false;
@@ -584,10 +448,8 @@ function confirmOrder(id, btn) {
 // ===== ユーティリティ =====
 function esc(str) {
   return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function formatDate(dateStr) {

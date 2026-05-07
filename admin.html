@@ -302,6 +302,85 @@
     .btn-login:active { background: #8B6508; }
 
     .app-screen { display: none; }
+
+    /* ===== 編集ボタン ===== */
+    .btn-edit-order {
+      padding: 5px 12px; background: transparent; border: 1px solid var(--gold);
+      color: var(--gold); border-radius: 6px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Serif JP', serif; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-edit-order:hover { background: var(--gold); color: #fff; }
+
+    /* ===== 編集モーダル ===== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 5000;
+      align-items: flex-start; justify-content: center;
+      padding: 24px 16px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg-card); border-radius: var(--radius);
+      width: 100%; max-width: 560px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      background: var(--text); color: var(--gold);
+      padding: 14px 18px; display: flex; align-items: center;
+      justify-content: space-between; font-size: 14px; font-weight: 600; letter-spacing: 1px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .btn-modal-close {
+      background: transparent; border: none; color: #a89070;
+      font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .btn-modal-close:hover { color: var(--gold); }
+    .modal-body { padding: 18px; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-field label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .modal-field input[type="text"],
+    .modal-field input[type="email"],
+    .modal-field textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 7px; font-family: 'Noto Serif JP', serif;
+      font-size: 14px; outline: none; color: var(--text);
+    }
+    .modal-field input:focus, .modal-field textarea:focus { border-color: var(--gold); }
+    .modal-field textarea { resize: vertical; }
+    .blend-edit-row {
+      display: grid; grid-template-columns: 1fr 88px; gap: 6px; margin-bottom: 6px;
+    }
+    .blend-edit-row input[type="number"] {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 7px; font-family: 'Noto Serif JP', serif;
+      font-size: 14px; outline: none; color: var(--gold); text-align: center;
+    }
+    .blend-edit-row input[type="number"]:focus { border-color: var(--gold); }
+    .modal-footer {
+      display: flex; gap: 8px; justify-content: flex-end;
+      padding: 14px 18px; border-top: 1px solid var(--border);
+      background: #FAFAF8; border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .btn-modal-save {
+      padding: 10px 24px; background: var(--gold); color: #fff; border: none;
+      border-radius: 8px; font-family: 'Noto Serif JP', serif; font-size: 14px;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-modal-save:hover { background: var(--gold-light); }
+    .btn-modal-save:disabled { background: #ccc; cursor: default; }
+    .btn-modal-cancel {
+      padding: 10px 18px; background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px; font-family: 'Noto Serif JP', serif;
+      font-size: 14px; cursor: pointer;
+    }
+    .save-msg-modal {
+      font-size: 12px; margin: 0 18px 12px; padding: 7px 10px; border-radius: 6px; display: none;
+    }
+    .save-msg-modal.success { background: #E8F8EE; color: #27AE60; display: block; }
+    .save-msg-modal.error   { background: #FEF3E8; color: #E74C3C; display: block; }
   </style>
 </head>
 <body>
@@ -486,6 +565,56 @@
   </div><!-- /main -->
 </div><!-- /appScreen -->
 
+<!-- ===== 編集モーダル ===== -->
+<div class="modal-overlay" id="editModalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      注文情報を編集
+      <button class="btn-modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editOriginalBlenderId">
+      <div class="modal-field">
+        <label>ブレンダーID</label>
+        <input type="text" id="editBlenderId" maxlength="20">
+      </div>
+      <div class="modal-field">
+        <label>ご本名</label>
+        <input type="text" id="editName" maxlength="50">
+      </div>
+      <div class="modal-field">
+        <label>Blender名</label>
+        <input type="text" id="editBlenderName" maxlength="50">
+      </div>
+      <div class="modal-field">
+        <label>Title（お酒の名前）</label>
+        <input type="text" id="editRecipeName" maxlength="50">
+      </div>
+      <div class="modal-field">
+        <label>ラベル色</label>
+        <input type="text" id="editLabelColor" maxlength="30">
+      </div>
+      <div class="modal-field">
+        <label>メール</label>
+        <input type="email" id="editEmail" maxlength="100">
+      </div>
+      <div class="modal-field">
+        <label>ブレンド配合（お酒の名前 / ml）</label>
+        <div id="editBlendRows"></div>
+      </div>
+      <div class="modal-field">
+        <label>スタッフ備考</label>
+        <textarea id="editStaffNote" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="save-msg-modal" id="msgEditModal"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn-modal-save" onclick="saveEditModal()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 設定 =====
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
@@ -494,6 +623,8 @@ const SESSION_KEY = 'msw_admin_auth';
 
 // ラベル選択肢はメモリ管理（追加・削除後にまとめて保存）
 let currentLabelOptions = [];
+// 注文一覧データ（編集モーダル参照用）
+let allOrders = [];
 
 // ===== ログイン =====
 function doLogin() {
@@ -552,9 +683,9 @@ function loadOrders() {
   fetch(`${GAS_URL}?action=getOrders&role=admin`)
     .then(r => r.json())
     .then(data => {
-      const orders = data.orders || [];
-      document.getElementById('ordersCount').textContent = `全 ${orders.length} 件`;
-      renderOrdersTable(orders);
+      allOrders = data.orders || [];
+      document.getElementById('ordersCount').textContent = `全 ${allOrders.length} 件`;
+      renderOrdersTable(allOrders);
     })
     .catch(err => {
       document.getElementById('ordersTableWrap').innerHTML =
@@ -569,7 +700,7 @@ function renderOrdersTable(orders) {
     return;
   }
 
-  const rows = orders.map(o => {
+  const rows = orders.map((o, idx) => {
     let blendPills = '';
     for (let i = 1; i <= 8; i++) {
       const name = o[`酒${i}名`];
@@ -589,11 +720,11 @@ function renderOrdersTable(orders) {
       <td>${esc(o['ブレンダー名'] || '-')}</td>
       <td class="blend-cell"><div class="blend-pills">${blendPills || '-'}</div></td>
       <td><span class="label-badge ${labelClass}">${labelStr}</span></td>
-      <td>${esc(o['お名前'] || '-')}</td>
+      <td>${esc(o['名前'] || '-')}</td>
       <td>${esc(o['メール']  || '-')}</td>
-      <td>${esc(o['電話']   || '-')}</td>
-      <td>${esc(o['配送先住所'] || '-')}</td>
+      <td style="max-width:150px;white-space:normal;font-size:12px;color:var(--text-muted)">${esc(o['スタッフ備考'] || '')}</td>
       <td>${confirmedStr}</td>
+      <td><button class="btn-edit-order" onclick="openEditModal(${idx})">編集</button></td>
     </tr>`;
   }).join('');
 
@@ -603,7 +734,7 @@ function renderOrdersTable(orders) {
         <thead><tr>
           <th>ブレンダーID</th><th>受信日時</th><th>レシピ名</th><th>ブレンダー名</th>
           <th>ブレンド内容</th><th>ラベル色</th><th>お名前</th>
-          <th>メール</th><th>電話</th><th>配送先住所</th><th>確認状況</th>
+          <th>メール</th><th>スタッフ備考</th><th>確認状況</th><th>操作</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -848,6 +979,109 @@ function showMsg(id, text, type) {
   el.className   = `save-msg ${type}`;
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.className = 'save-msg'; }, 3500);
+}
+
+// ===== 編集モーダル =====
+function openEditModal(idx) {
+  const order = allOrders[idx];
+  if (!order) return;
+
+  document.getElementById('editOriginalBlenderId').value = order['ブレンダーID'] || '';
+  document.getElementById('editBlenderId').value         = order['ブレンダーID'] || '';
+  document.getElementById('editName').value              = order['名前']         || '';
+  document.getElementById('editBlenderName').value       = order['ブレンダー名'] || '';
+  document.getElementById('editRecipeName').value        = order['レシピ名']     || '';
+  document.getElementById('editLabelColor').value        = order['ラベル色']     || '';
+  document.getElementById('editEmail').value             = order['メール']       || '';
+  document.getElementById('editStaffNote').value         = order['スタッフ備考'] || '';
+
+  // ブレンド配合行を生成（酒1〜8）
+  let blendHtml = '';
+  for (let i = 1; i <= 8; i++) {
+    const sakeName = esc(String(order[`酒${i}名`] || ''));
+    const sakeMl   = esc(String(order[`酒${i}ml`] || ''));
+    blendHtml += `<div class="blend-edit-row">
+      <input type="text" id="editSakeName${i}" value="${sakeName}" placeholder="お酒の名前${i}">
+      <input type="number" id="editSakeMl${i}" value="${sakeMl}" placeholder="ml" min="0" step="1">
+    </div>`;
+  }
+  document.getElementById('editBlendRows').innerHTML = blendHtml;
+
+  // メッセージをリセット
+  const msgEl = document.getElementById('msgEditModal');
+  msgEl.className   = 'save-msg-modal';
+  msgEl.textContent = '';
+
+  document.getElementById('editModalOverlay').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModalOverlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('editModalOverlay')) closeEditModal();
+}
+
+function saveEditModal() {
+  const originalBlenderId = document.getElementById('editOriginalBlenderId').value;
+  const blenderId  = document.getElementById('editBlenderId').value.trim();
+  const name       = document.getElementById('editName').value.trim();
+  const blenderName= document.getElementById('editBlenderName').value.trim();
+  const recipeName = document.getElementById('editRecipeName').value.trim();
+  const labelColor = document.getElementById('editLabelColor').value.trim();
+  const email      = document.getElementById('editEmail').value.trim();
+  const staffNote  = document.getElementById('editStaffNote').value.trim();
+
+  const blends = [];
+  for (let i = 1; i <= 8; i++) {
+    blends.push({
+      name: document.getElementById(`editSakeName${i}`).value.trim(),
+      ml:   parseFloat(document.getElementById(`editSakeMl${i}`).value) || 0
+    });
+  }
+
+  const saveBtn = document.querySelector('#editModalOverlay .btn-modal-save');
+  saveBtn.disabled    = true;
+  saveBtn.textContent = '保存中...';
+
+  gasPost({ action: 'updateOrder', originalBlenderId, blenderId, name, blenderName, recipeName, labelColor, email, staffNote, blends })
+    .then(data => {
+      saveBtn.disabled    = false;
+      saveBtn.textContent = '保存する';
+      if (data.success) {
+        showMsgModal('保存しました', 'success');
+        // ローカルデータを更新
+        const order = allOrders.find(o => String(o['ブレンダーID']) === String(originalBlenderId));
+        if (order) {
+          order['ブレンダーID'] = blenderId;
+          order['名前']         = name;
+          order['ブレンダー名'] = blenderName;
+          order['レシピ名']     = recipeName;
+          order['ラベル色']     = labelColor;
+          order['メール']       = email;
+          order['スタッフ備考'] = staffNote;
+          for (let i = 1; i <= 8; i++) {
+            order[`酒${i}名`] = blends[i-1].name;
+            order[`酒${i}ml`] = blends[i-1].ml;
+          }
+        }
+        setTimeout(() => { closeEditModal(); renderOrdersTable(allOrders); }, 900);
+      } else {
+        showMsgModal(data.error || '保存に失敗しました', 'error');
+      }
+    })
+    .catch(err => {
+      saveBtn.disabled    = false;
+      saveBtn.textContent = '保存する';
+      showMsgModal('通信エラー: ' + err, 'error');
+    });
+}
+
+function showMsgModal(text, type) {
+  const el = document.getElementById('msgEditModal');
+  el.textContent = text;
+  el.className   = `save-msg-modal ${type}`;
 }
 
 // ===== HTML エスケープ =====
