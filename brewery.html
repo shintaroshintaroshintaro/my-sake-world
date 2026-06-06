@@ -114,7 +114,10 @@
     .blend-section { margin-bottom: 24px; }
     .blend-section-title {
       font-size: 12px; font-weight: 600; color: var(--gold);
-      letter-spacing: 2px; margin-bottom: 14px;
+      letter-spacing: 2px; margin-bottom: 6px;
+    }
+    .blend-section-note {
+      font-size: 11px; color: var(--text-muted); margin-bottom: 14px; letter-spacing: 0.5px;
     }
     .blend-item {
       display: flex; align-items: baseline; gap: 14px;
@@ -369,15 +372,16 @@ function renderRecipeCard(order) {
   const label     = order['ラベル色'] || '';
   const confirmed = !!order['確認済み'];
 
-  // ブレンドアイテム
+  // ブレンドアイテム（ml × 5 で200ml換算して表示）
   let blendHtml = '';
   for (let i = 1; i <= 8; i++) {
     const name = order[`酒${i}名`];
     const ml   = order[`酒${i}ml`];
     if (name) {
+      const ml200 = (parseFloat(ml) || 0) * 5;
       blendHtml += `<div class="blend-item">
         <span class="blend-sake-name">${esc(name)}</span>
-        <span class="blend-sake-ml">${ml} ml</span>
+        <span class="blend-sake-ml">${ml200} ml</span>
       </div>`;
     }
   }
@@ -405,6 +409,7 @@ function renderRecipeCard(order) {
         <div class="recipe-blender-name">ブレンダー：${blender}</div>
         <div class="blend-section">
           <div class="blend-section-title">BLEND RECIPE</div>
+          <div class="blend-section-note">※200ml瓶詰め換算</div>
           ${blendHtml || '<p style="color:var(--text-muted);font-size:16px">データなし</p>'}
         </div>
       </div>

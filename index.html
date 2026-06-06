@@ -86,7 +86,7 @@
     .err-msg.show { display:block; }
 
     /* ===== ラベル選択 ===== */
-    .label-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .label-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
     .label-opt input[type="radio"] { position:absolute; opacity:0; width:0; }
     .label-opt label {
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -105,10 +105,16 @@
     .label-name { font-size:15px; font-weight:700; color:var(--text); }
     .label-opt input:checked + label .label-name { color:var(--gold); }
 
+    /* ===== メール分割入力 ===== */
+    .email-split { display:flex; align-items:center; gap:6px; }
+    .email-split input { flex:1; min-width:0; }
+    .at-mark { font-weight:700; font-size:20px; color:var(--text-muted); flex-shrink:0; line-height:1; }
+
     /* ===== ブレンド行 ===== */
-    .blend-header { display:grid; grid-template-columns:1fr 96px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
+    .blend-header { display:grid; grid-template-columns:22px 1fr 96px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
     .blend-header span { font-size:12px; font-weight:700; color:var(--text-muted); letter-spacing:1px; }
-    .blend-row { display:grid; grid-template-columns:1fr 96px 38px; gap:6px; margin-bottom:8px; align-items:center; }
+    .blend-row { display:grid; grid-template-columns:22px 1fr 96px 38px; gap:6px; margin-bottom:8px; align-items:center; }
+    .blend-num { font-size:14px; font-weight:700; color:var(--text-muted); text-align:right; line-height:1; padding-top:14px; }
     .blend-row select { font-size:15px; padding:10px 8px; }
     .ml-wrap { position:relative; }
     .ml-wrap input[type="number"] { padding:10px 30px 10px 8px; text-align:center; font-size:16px; -moz-appearance:textfield; }
@@ -396,13 +402,19 @@
     <div class="card">
       <div class="section-title" data-t="section.label">ラベルの色</div>
       <div class="label-grid" id="labelGrid"></div>
-      <div class="err-msg mt12" id="eLabel" data-t="err.label">ラベルの色を選択してください</div>
+      <!-- 「その他」選択時のテキスト入力 -->
+      <div id="otherLabelWrap" class="hidden mt12">
+        <input type="text" id="inOtherLabel" data-ph="ph.otherLabel" maxlength="30">
+        <div class="err-msg" id="eOtherLabel" data-t="err.required">この項目は必須です</div>
+      </div>
+      <div class="err-msg mt12" id="eLabel" data-t="err.label">ラベルを選択してください</div>
     </div>
 
     <!-- ブレンド配合 -->
     <div class="card">
       <div class="section-title" data-t="section.blend">ブレンド配合</div>
       <div class="blend-header">
+        <span></span>
         <span data-t="blend.sake">お酒</span>
         <span style="text-align:center" data-t="blend.ml">ml</span>
         <span></span>
@@ -420,17 +432,25 @@
       <div class="err-msg" id="eBlend" data-t="err.blend">少なくとも1種選択してください</div>
     </div>
 
-    <!-- メール -->
+    <!-- メール（ユーザー名@ドメインの2分割入力）-->
     <div class="card mb0">
       <div class="section-title" data-t="section.contact">連絡先</div>
       <div class="field" id="fEmail">
         <label data-t="field.email">メールアドレス<span class="req">*</span></label>
-        <input type="email" id="inEmail" data-ph="ph.email">
+        <div class="email-split">
+          <input type="text" id="inEmailUser" maxlength="100" data-ph="ph.emailUser" autocomplete="email">
+          <span class="at-mark">@</span>
+          <input type="text" id="inEmailDomain" maxlength="100" data-ph="ph.emailDomain" autocomplete="off">
+        </div>
         <div class="err-msg" id="eEmail" data-t="err.email">正しいメールアドレスを入力してください</div>
       </div>
       <div class="field mb0" id="fEmailConfirm">
         <label data-t="field.emailConfirm">メールアドレス（確認）<span class="req">*</span></label>
-        <input type="email" id="inEmailConfirm" data-ph="ph.email">
+        <div class="email-split">
+          <input type="text" id="inEmailConfirmUser" maxlength="100" data-ph="ph.emailUser" autocomplete="off">
+          <span class="at-mark">@</span>
+          <input type="text" id="inEmailConfirmDomain" maxlength="100" data-ph="ph.emailDomain" autocomplete="off">
+        </div>
         <div class="err-msg" id="eEmailConfirm" data-t="err.emailMatch">メールアドレスが一致しません</div>
       </div>
     </div>
@@ -472,6 +492,10 @@
       <button class="btn-ghost mt16" onclick="goStepA1()" id="btnAdditional" data-t="btn.additional">
         追い瓶・ペアリングチェンジはいかが？
       </button>
+      <!-- 英語版のみ表示する注記 -->
+      <p id="additionalNote" class="hidden" style="font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.6" data-t="btn.additional.note">For those residing in Japan only.</p>
+      <!-- 日本語版のお届け目安（ボタン下に移動）-->
+      <p id="completeDelivery" style="font-size:15px;color:var(--text-muted);margin-top:14px;line-height:1.7" data-t="complete.delivery">受注後、約一か月後にお届けいたします。</p>
     </div>
   </div><!-- /step3 -->
 
@@ -552,7 +576,10 @@
       <!-- ギフトチェック -->
       <div class="check-row">
         <input type="checkbox" id="chkGift">
-        <label for="chkGift" data-t="ship.gift">ご発注者様以外の方へお送りする場合はチェックをお願いいたします。お届け伝票にはお客様のお名前を記載させていただきます。</label>
+        <label for="chkGift">
+          <span data-t="ship.gift">ギフトとして、ご発注者様以外の方へお送りする場合はチェックをお願いいたします。</span><br>
+          <span data-t="ship.giftSub" style="font-size:13px;color:var(--text-muted)">お届け伝票にはご発注者様のお名前を記載させていただきます。</span>
+        </label>
       </div>
 
       <div class="field" id="fRecipient">
@@ -580,9 +607,15 @@
       </div>
 
       <div class="field" id="fAddress">
-        <label data-t="ship.address">ご住所<span class="req">*</span></label>
+        <label data-t="ship.address">ご住所（都道府県・市区町村）<span class="req">*</span></label>
         <input type="text" id="inAddress" data-ph="ph.address">
         <div class="err-msg" id="eAddress" data-t="err.required">この項目は必須です</div>
+      </div>
+
+      <div class="field" id="fBanchi">
+        <label data-t="ship.banchi">番地<span class="req">*</span></label>
+        <input type="text" id="inBanchi" data-ph="ph.banchi">
+        <div class="err-msg" id="eBanchi" data-t="err.required">この項目は必須です</div>
       </div>
 
       <div class="field mb0">
@@ -646,15 +679,15 @@ const T = {
     'step.done'               : '完了',
     'step.order'              : '追加注文',
     'section.basic'           : '基本情報',
-    'section.label'           : 'ラベルの色',
-    'section.blend'           : 'ブレンド配合',
+    'section.label'           : 'ラベル',
+    'section.blend'           : 'お酒のレシピ',
     'section.contact'         : '連絡先',
     'section.confirm'         : '入力内容の確認',
     'section.orderer'         : '発注者情報',
     'section.qty'             : '本数・容量',
     'section.ship'            : '発送先',
-    'field.id'                : 'ブレンダーID',
-    'field.name'              : 'ご本名',
+    'field.id'                : 'Blender ID',
+    'field.name'              : 'お名前',
     'field.blender'           : 'Blender名',
     'field.title'             : 'Title（お酒の名前）',
     'field.date'              : 'Date',
@@ -666,6 +699,10 @@ const T = {
     'ph.blender'              : '例：Taro',
     'ph.title'                : '例：春の宴',
     'ph.email'                : 'example@email.com',
+    'ph.emailUser'            : 'tanaka.taro',
+    'ph.emailDomain'          : 'gmail.com',
+    'ph.otherLabel'           : 'ラベル名を入力してください',
+    'ph.banchi'               : '例：1-2-3',
     'ph.phone'                : '09000000000（ハイフンなし）',
     'ph.zip'                  : '1234567（ハイフンなし）',
     'ph.address'              : '都道府県・市区町村・番地',
@@ -681,9 +718,10 @@ const T = {
     'btn.zip'                 : '住所検索',
     'btn.additional'          : '追い瓶・ペアリングチェンジはいかが？',
     'btn.sameAsOrderer'       : 'ご発注者様と同じ',
-    'confirm.question'        : 'こちらでお間違いないでしょうか？',
+    'confirm.question'        : 'こちらでお間違いありませんか？',
     'complete.title'          : '登録完了',
-    'complete.msg'            : 'あなたのMy Sakeのレシピが登録できました！\nあなたのレシピ詳細をメールでお送りします。\n\n受注後、約一か月後にお届けいたします。',
+    'complete.msg'            : 'あなたのMy Sakeのレシピが登録できました！\nあなたのレシピ詳細をメールでお送りします。',
+    'complete.delivery'       : '受注後、約一か月後にお届けいたします。',
     'complete.id.label'       : 'あなたのブレンダーID',
     'additional.greeting'     : 'ありがとうございます！',
     'qty.200'                 : '200ml × 本数',
@@ -695,11 +733,14 @@ const T = {
     'ship.name'               : '宛名',
     'ship.phone'              : '電話番号',
     'ship.zip'                : '郵便番号',
-    'ship.address'            : 'ご住所',
+    'ship.address'            : 'ご住所（都道府県・市区町村）',
+    'ship.banchi'             : '番地',
     'ship.building'           : 'マンション名・部屋番号・建物名',
-    'ship.gift'               : 'ご発注者様以外の方へお送りする場合はチェックをお願いいたします。お届け伝票にはお客様のお名前を記載させていただきます。',
+    'ship.gift'               : 'ギフトとして、ご発注者様以外の方へお送りする場合はチェックをお願いいたします。',
+    'ship.giftSub'            : 'お届け伝票にはご発注者様のお名前を記載させていただきます。',
     'additional.complete.title': 'ありがとうございます',
-    'additional.complete.msg' : 'ありがとうございます。\nレジにてご精算お願いいたします。\n\nご不明点やご相談は、\n店舗スタッフまでお気軽に\nお申し付けくださいませ。',
+    'additional.complete.msg' : 'ご注文内容をメールにてお送りいたしました。\nレジにてご精算をお願いいたします。',
+    'btn.additional.note'     : '',
     'opt'                     : '（任意）',
     'err.required'            : 'この項目は必須です',
     'err.id'                  : '4桁の数字を入力してください',
@@ -726,7 +767,7 @@ const T = {
     'step.done'               : 'Done',
     'step.order'              : 'Add Order',
     'section.basic'           : 'Basic Info',
-    'section.label'           : 'Label Color',
+    'section.label'           : 'Label',
     'section.blend'           : 'Blend Recipe',
     'section.contact'         : 'Contact',
     'section.confirm'         : 'Confirm Details',
@@ -746,6 +787,10 @@ const T = {
     'ph.blender'              : 'e.g. Taro',
     'ph.title'                : 'e.g. Spring Banquet',
     'ph.email'                : 'example@email.com',
+    'ph.emailUser'            : 'tanaka.taro',
+    'ph.emailDomain'          : 'gmail.com',
+    'ph.otherLabel'           : 'Enter label name',
+    'ph.banchi'               : 'e.g. 1-2-3',
     'ph.phone'                : '09000000000 (no hyphens)',
     'ph.zip'                  : '1234567 (no hyphen)',
     'ph.address'              : 'Prefecture, City, Street',
@@ -763,7 +808,8 @@ const T = {
     'btn.sameAsOrderer'       : 'Same as orderer',
     'confirm.question'        : 'Does everything look correct?',
     'complete.title'          : 'Registration Complete',
-    'complete.msg'            : 'Your My Sake recipe has been registered!\nWe will send you the details by email.\n\nExpect delivery approximately one month after your order.',
+    'complete.msg'            : 'Your My Sake recipe has been registered!\nWe will send you the details by email.',
+    'complete.delivery'       : '',
     'complete.id.label'       : 'Your Blender ID',
     'additional.greeting'     : 'Thank you!',
     'qty.200'                 : '200ml × Bottles',
@@ -775,11 +821,14 @@ const T = {
     'ship.name'               : 'Recipient Name',
     'ship.phone'              : 'Phone Number',
     'ship.zip'                : 'Postal Code',
-    'ship.address'            : 'Address',
+    'ship.address'            : 'Address (Prefecture, City)',
+    'ship.banchi'             : 'Street Number',
     'ship.building'           : 'Apt / Building',
-    'ship.gift'               : 'Check if sending as a gift to someone else. Delivery slip will show your name.',
+    'ship.gift'               : 'Check if sending as a gift to someone other than the orderer.',
+    'ship.giftSub'            : 'The delivery slip will show the orderer\'s name.',
     'additional.complete.title': 'Thank You',
-    'additional.complete.msg' : 'Thank you.\nPlease proceed to the register for payment.\n\nFeel free to ask our staff\nif you have any questions.',
+    'additional.complete.msg' : 'Your order details have been sent by email.\nPlease proceed to the register for payment.',
+    'btn.additional.note'     : 'For those residing in Japan only.',
     'opt'                     : ' (Optional)',
     'err.required'            : 'This field is required',
     'err.id'                  : 'Please enter a 4-digit number',
@@ -813,11 +862,15 @@ function t(key) { return T[currentLang][key] || T['ja'][key] || key; }
 
 function applyT() {
   document.querySelectorAll('[data-t]').forEach(el => {
-    const key = el.getAttribute('data-t');
+    const key  = el.getAttribute('data-t');
+    const text = t(key);
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      el.placeholder = t(key);
+      el.placeholder = text;
+    } else if (text.includes('\n')) {
+      // \n を <br> に変換して表示
+      el.innerHTML = text.split('\n').map(s => esc(s)).join('<br>');
     } else {
-      el.textContent = t(key);
+      el.textContent = text;
     }
   });
   document.querySelectorAll('[data-ph]').forEach(el => {
@@ -828,12 +881,36 @@ function applyT() {
   updateBlendAddButton(false);
   updateBlendAddButton(true);
   updateTargetLabel();
+  // 英語版のみ追加注文注記を表示
+  const noteEl = document.getElementById('additionalNote');
+  if (noteEl) noteEl.classList.toggle('hidden', currentLang !== 'en');
+  // 英語版では配送目安テキストが空なので非表示
+  const deliveryEl = document.getElementById('completeDelivery');
+  if (deliveryEl) deliveryEl.style.display = (currentLang === 'en' && !t('complete.delivery')) ? 'none' : '';
 }
 
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('msw_lang', lang);
   applyT();
+  // ラベルボタンの表示言語を更新
+  renderLabelOptions('labelGrid', 'lc');
+  // ブレンド選択肢の表示言語を更新
+  document.querySelectorAll('[id^="sake-b-"],[id^="sake-ab-"]').forEach(sel => {
+    const currentVal = sel.value;
+    const opts = sakeList.map(s => {
+      const display = (currentLang === 'en' && s.nameEn) ? s.nameEn : s.name;
+      return `<option value="${esc(s.name)}"${s.name===currentVal?' selected':''}>${esc(display)}</option>`;
+    }).join('');
+    sel.innerHTML = `<option value="">${t('select.placeholder')}</option>` + opts;
+    sel.value = currentVal;
+  });
+  // 英語版のみ追加注文の注記を表示
+  const noteEl = document.getElementById('additionalNote');
+  if (noteEl) noteEl.classList.toggle('hidden', lang !== 'en');
+  // 配送目安は英語版では非表示
+  const deliveryEl = document.getElementById('completeDelivery');
+  if (deliveryEl) deliveryEl.style.display = (lang === 'en' && !t('complete.delivery')) ? 'none' : '';
   if (document.getElementById('step2').classList.contains('active'))   renderConfirmation();
   if (document.getElementById('stepA2').classList.contains('active')) renderAdditionalConfirmation();
 }
@@ -893,7 +970,10 @@ function loadFormSettings() {
   .then(([settings, sakeData]) => {
     TARGET_ML      = settings.targetMl || 40;
     MAX_BLEND_ROWS = settings.maxRows  || 8;
-    sakeList       = sakeData.list     || [];
+    // sakeListは {name, nameEn} オブジェクトの配列
+    sakeList       = (sakeData.list || []).map(s =>
+      typeof s === 'string' ? { name: s, nameEn: s } : s
+    );
     labelOptions   = settings.labelOptions || ['白ラベル', '黒ラベル'];
 
     if (settings.guideText) {
@@ -922,32 +1002,39 @@ function updateTargetLabel() {
   document.getElementById('overOverlayMsg').innerHTML = `合計が<br>${TARGET_ML}mlを超えています`;
 }
 
-// ===== ラベル選択肢生成 =====
+// ===== ラベル選択肢生成（白/黒/その他 の3択固定）=====
 function renderLabelOptions(containerId, namePrefix) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  container.innerHTML = labelOptions.map((name, i) => {
-    const id  = `${namePrefix}-${i}`;
-    const cls = getLabelClass(name);
-    const txt = getLabelText(name);
+  const isEn = currentLang === 'en';
+  const options = [
+    { value: '白ラベル', cls: 'white',  preview: 'WHITE<br>LABEL', labelJa: '白',    labelEn: 'White' },
+    { value: '黒ラベル', cls: 'black',  preview: 'BLACK<br>LABEL', labelJa: '黒',    labelEn: 'Black' },
+    { value: '',         cls: 'custom', preview: 'OTHER',           labelJa: 'その他', labelEn: 'Other' },
+  ];
+  container.innerHTML = options.map((opt, i) => {
+    const id    = `${namePrefix}-${i}`;
+    const label = isEn ? opt.labelEn : opt.labelJa;
+    const onChange = opt.value === '' ? `onchange="toggleOtherLabel('${namePrefix}')"` : `onchange="toggleOtherLabel('${namePrefix}')"`;
     return `<div class="label-opt" style="position:relative">
-      <input type="radio" name="${namePrefix}" id="${id}" value="${esc(name)}"${i===0?' checked':''}>
+      <input type="radio" name="${namePrefix}" id="${id}" value="${opt.value}"${i===0?' checked':''}
+        ${onChange}>
       <label for="${id}">
-        <div class="label-preview ${cls}">${txt}</div>
-        <div class="label-name">${esc(name)}</div>
+        <div class="label-preview ${opt.cls}">${opt.preview}</div>
+        <div class="label-name">${label}</div>
       </label>
     </div>`;
   }).join('');
 }
-function getLabelClass(n) {
-  if (n.includes('白')||/white/i.test(n)) return 'white';
-  if (n.includes('黒')||/black/i.test(n)) return 'black';
-  return 'custom';
-}
-function getLabelText(n) {
-  if (n.includes('白')||/white/i.test(n)) return 'WHITE<br>LABEL';
-  if (n.includes('黒')||/black/i.test(n)) return 'BLACK<br>LABEL';
-  return esc(n.substring(0,4));
+
+// 「その他」選択時にテキスト入力を表示
+function toggleOtherLabel(namePrefix) {
+  const selected = document.querySelector(`input[name="${namePrefix}"]:checked`);
+  const wrap = document.getElementById('otherLabelWrap');
+  if (!wrap) return;
+  const isOther = selected && selected.value === '';
+  wrap.classList.toggle('hidden', !isOther);
+  if (isOther) document.getElementById('inOtherLabel').focus();
 }
 
 // ===== ブレンド行管理 =====
@@ -964,8 +1051,13 @@ function addBlendRow(isAdd) {
   div.className = 'blend-row';
   div.id = `row-${rowId}`;
 
-  const opts = sakeList.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  // 英語版では英語名を表示、値は常に日本語名（バックエンドが日本語名で管理）
+  const opts = sakeList.map(s => {
+    const display = (currentLang === 'en' && s.nameEn) ? s.nameEn : s.name;
+    return `<option value="${esc(s.name)}">${esc(display)}</option>`;
+  }).join('');
   div.innerHTML = `
+    <span class="blend-num">${newCount}.</span>
     <select id="sake-${rowId}" onchange="updateTotal(${isAdd})">
       <option value="">${t('select.placeholder')}</option>${opts}
     </select>
@@ -990,8 +1082,20 @@ function removeBlendRow(rowId, isAdd) {
   if (count <= 1) return;
   const el = document.getElementById(`row-${rowId}`);
   if (el) { el.remove(); if (isAdd) addBlendCount--; else mainBlendCount--; }
+  renumberBlendRows(isAdd);
   updateBlendAddButton(isAdd);
   updateTotal(isAdd);
+}
+
+// 行番号を振り直す
+function renumberBlendRows(isAdd) {
+  const prefix = isAdd ? 'ab' : 'b';
+  let n = 1;
+  document.querySelectorAll(`[id^="row-${prefix}-"]`).forEach(row => {
+    const numEl = row.querySelector('.blend-num');
+    if (numEl) numEl.textContent = n + '.';
+    n++;
+  });
 }
 
 function updateBlendAddButton(isAdd) {
@@ -1075,6 +1179,16 @@ function goStep2() {
   const lc = document.querySelector('input[name="lc"]:checked');
   setErr('eLabel', !lc); if (!lc) ok = false;
 
+  // 「その他」選択時はテキスト入力を必須チェック
+  let labelColor = lc ? lc.value : '';
+  if (lc && lc.value === '') {
+    const otherLabel = document.getElementById('inOtherLabel').value.trim();
+    setErr('eOtherLabel', !otherLabel); if (!otherLabel) ok = false;
+    labelColor = otherLabel;
+  } else {
+    setErr('eOtherLabel', false);
+  }
+
   // ブレンド（少なくとも1種 + ちょうど TARGET_ML）
   const hasBlend = [...document.querySelectorAll('[id^="sake-b-"]')].some(s => s.value);
   const total    = updateTotal(false);
@@ -1085,13 +1199,17 @@ function goStep2() {
     ok = false;
   }
 
-  // メール
-  const email = document.getElementById('inEmail').value.trim();
+  // メール（分割入力を結合）
+  const emailUser   = document.getElementById('inEmailUser').value.trim();
+  const emailDomain = document.getElementById('inEmailDomain').value.trim();
+  const email = emailUser && emailDomain ? emailUser + '@' + emailDomain : '';
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   setErr('eEmail', !emailOk, 'fEmail'); if (!emailOk) ok = false;
 
-  // メール確認
-  const emailConfirm = document.getElementById('inEmailConfirm').value.trim();
+  // メール確認（分割入力を結合して一致チェック）
+  const emailCUser   = document.getElementById('inEmailConfirmUser').value.trim();
+  const emailCDomain = document.getElementById('inEmailConfirmDomain').value.trim();
+  const emailConfirm = emailCUser && emailCDomain ? emailCUser + '@' + emailCDomain : '';
   const emailMatchOk = email === emailConfirm && emailOk;
   setErr('eEmailConfirm', !emailMatchOk, 'fEmailConfirm'); if (!emailMatchOk) ok = false;
 
@@ -1103,7 +1221,7 @@ function goStep2() {
     blenderName: blender,
     recipeName : title,
     date       : document.getElementById('inDate').value,
-    labelColor : lc.value,
+    labelColor : labelColor,
     blends     : collectBlends(false),
     email      : email,
   };
@@ -1229,8 +1347,10 @@ function goStepA2() {
   const zip = document.getElementById('inZip').value.replace(/-/g,'').trim();
   const zipOk = /^\d{7}$/.test(zip);
   setErr('eZip', !zipOk); if (!zipOk) ok = false;
-  // 住所
+  // 住所（都道府県・市区町村）
   ok = req('fAddress', 'eAddress', document.getElementById('inAddress').value.trim()) && ok;
+  // 番地（必須）
+  ok = req('fBanchi', 'eBanchi', document.getElementById('inBanchi').value.trim()) && ok;
 
   if (!ok) return;
 
@@ -1256,7 +1376,9 @@ function renderAdditionalConfirmation() {
     ${row(t('ship.name'),    document.getElementById('inRecipient').value)}
     ${row(t('ship.phone'),   document.getElementById('inShipPhone').value)}
     ${row(t('ship.zip'),     document.getElementById('inZip').value)}
-    ${row(t('ship.address'), document.getElementById('inAddress').value + (document.getElementById('inBuilding').value ? ' ' + document.getElementById('inBuilding').value : ''))}`;
+    ${row(t('ship.address'), document.getElementById('inAddress').value)}
+    ${row(t('ship.banchi'),  document.getElementById('inBanchi').value)}
+    ${document.getElementById('inBuilding').value ? row(t('ship.building'), document.getElementById('inBuilding').value) : ''}`;
 }
 
 function goBackA1() {
@@ -1280,7 +1402,7 @@ function doSubmitAdditionalOrder() {
     recipientName : document.getElementById('inRecipient').value.trim(),
     phone         : document.getElementById('inShipPhone').value.trim(),
     zipcode       : document.getElementById('inZip').value.replace(/-/g,'').trim(),
-    address       : document.getElementById('inAddress').value.trim(),
+    address       : document.getElementById('inAddress').value.trim() + document.getElementById('inBanchi').value.trim(),
     building      : document.getElementById('inBuilding').value.trim(),
   };
 

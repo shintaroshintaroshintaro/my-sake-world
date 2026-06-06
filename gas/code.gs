@@ -3,11 +3,11 @@
  *
  * ===== デプロイ手順 =====
  * 1. 対象スプレッドシート (ID: 1zvOH6pB2i3NLn0_15IzjrHmDHIJbI2j1dPQ1aA3UYMw) を開く
- * 2. メニュー「拡張機能」→「Apps Script」を開く
+ * 2. 「拡張機能」→「Apps Script」を開く
  * 3. このコードを全て貼り付けて保存（Ctrl+S）
  * 4. 【初回・スキーマ変更時】関数「initialize」を実行してシートを初期化
  * 5. 「デプロイ」→「新しいデプロイ」→ 種類: ウェブアプリ
- * 6. 実行ユーザー: 自分 / アクセス: 全員 → デプロイ → URLをHTMLファイルに貼り付け
+ * 6. 実行ユーザー: 自分 / アクセス: 全員 → デプロイ → URLをHTMLに貼り付け
  *
  * ===== 更新時 =====
  * 「デプロイ」→「デプロイを管理」→「編集」→「新しいバージョン」で再デプロイ
@@ -59,11 +59,13 @@ function doPost(e) {
     switch (data.action) {
       case 'submitRecipe':           return createJsonResponse(submitRecipe(data));
       case 'submitAdditionalOrder':  return createJsonResponse(submitAdditionalOrder(data));
+      case 'updateOrder':            return createJsonResponse(updateOrder(data));
       case 'addSake':                return createJsonResponse(addSake(data.name));
       case 'deleteSake':             return createJsonResponse(deleteSake(data.name));
       case 'updateStatus':           return createJsonResponse(updateStatus(data.id));
       case 'updateFormSettings':     return createJsonResponse(updateFormSettings(data));
       case 'updateBlenderIdCounter': return createJsonResponse(updateBlenderIdCounter(data));
+      case 'updateSakeEnName':       return createJsonResponse(updateSakeEnName(data));
       default: return createJsonResponse({ error: '不明なアクション: ' + data.action });
     }
   } catch (err) {
@@ -72,14 +74,22 @@ function doPost(e) {
 }
 
 // ===== 酒リスト取得 =====
+// A列: 日本語名, B列: 英語名（任意）
 function getSakeList() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SAKE_SHEET_NAME);
   if (!sheet) return { list: [] };
   const lastRow = sheet.getLastRow();
   if (lastRow === 0) return { list: [] };
-  const values = sheet.getRange(1, 1, lastRow, 1).getValues();
-  return { list: values.map(r => r[0]).filter(v => v !== '') };
+  const cols   = Math.max(sheet.getLastColumn(), 2);
+  const values = sheet.getRange(1, 1, lastRow, cols).getValues();
+  const list   = values
+    .filter(r => r[0] !== '')
+    .map(r => ({
+      name  : String(r[0]),
+      nameEn: r[1] ? String(r[1]) : String(r[0])  // 英語名が空の場合は日本語名をそのまま使用
+    }));
+  return { list };
 }
 
 // ===== 注文一覧取得 =====
@@ -123,7 +133,7 @@ function getOrders(role) {
       }))
     };
   }
-  return { orders }; // 管理者用：全カラム
+  return { orders }; // 管理者用：全カラム（スタッフ備考含む）
 }
 
 // ===== フォーム設定取得 =====
@@ -174,8 +184,7 @@ function updateFormSettings(data) {
   return { success: true };
 }
 
-// ===== ブレンダーIDカウンター取得 =====
-// counter の値を返す（次に発番される番号 = counter + 1）
+// ===== ブレンダーIDカウンター取得（管理画面用）=====
 function getBlenderIdCounter() {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SETTINGS_SHEET_NAME);
@@ -190,7 +199,6 @@ function getBlenderIdCounter() {
 }
 
 // ===== ブレンダーIDカウンター更新（管理者用）=====
-// data.counter に保存したい値を渡す（次の発番 = counter + 1）
 function updateBlenderIdCounter(data) {
   if (data.counter === undefined || data.counter === null) throw new Error('counterが必要です');
   const val = parseInt(data.counter);
@@ -198,56 +206,30 @@ function updateBlenderIdCounter(data) {
   return updateFormSettings({ key: 'blender_id_counter', value: String(val) });
 }
 
-// ===== ブレンダーIDをインクリメントして発番 =====
-// 設定シートの blender_id_counter を +1 してその値を返す
-function getAndIncrementBlenderId() {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let   sheet = ss.getSheetByName(SETTINGS_SHEET_NAME);
-  if (!sheet) sheet = ss.insertSheet(SETTINGS_SHEET_NAME);
-
-  const lastRow  = sheet.getLastRow();
-  let foundRow   = -1;
-  let currentVal = 0;
-
-  if (lastRow > 0) {
-    const values = sheet.getRange(1, 1, lastRow, 2).getValues();
-    for (let i = 0; i < values.length; i++) {
-      if (values[i][0] === 'blender_id_counter') {
-        foundRow   = i + 1;
-        currentVal = parseInt(values[i][1]) || 0;
-        break;
-      }
-    }
-  }
-
-  const newVal = currentVal + 1;
-  if (foundRow > 0) {
-    sheet.getRange(foundRow, 2).setValue(newVal);
-  } else {
-    sheet.appendRow(['blender_id_counter', newVal]);
-  }
-  return newVal;
-}
-
 // ===== レシピ送信 =====
+// ブレンダーIDはお客様が入力した4桁数字をそのまま使用
 function submitRecipe(data) {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(RECIPE_SHEET_NAME);
   if (!sheet) throw new Error('レシピシートが見つかりません');
 
-  // ブレンダーIDを発番（シンプルな連番）
-  const blenderId = getAndIncrementBlenderId();
+  const blenderId = data.blenderId || '';
+  // username + domain で分割送信された場合はGAS側で結合
+  const email = data.email || (data.emailUsername && data.emailDomain
+    ? data.emailUsername + '@' + data.emailDomain : '');
   const now       = new Date();
   const dateStr   = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+
+  Logger.log('submitRecipe 開始: blenderId=' + blenderId + ', name=' + data.name + ', email=' + email);
 
   // 行データ組み立て
   const row = [
     blenderId,
     dateStr,
-    data.date        || '',  // 制作日
-    data.recipeName  || '',  // レシピ名（Title）
-    data.name        || '',  // お名前
-    data.blenderName || '',  // Blender名
+    data.date        || '',
+    data.recipeName  || '',
+    data.name        || '',
+    data.blenderName || '',
     data.labelColor  || '',
   ];
 
@@ -258,14 +240,17 @@ function submitRecipe(data) {
     row.push(b ? (b.ml   || '') : '');
   }
 
-  row.push(data.email || '');
-  row.push(''); // 確認済みフラグ（初期値: 空）
+  row.push(email);
+  row.push('');  // 確認済みフラグ
+  row.push('');  // スタッフ備考
 
   sheet.appendRow(row);
+  Logger.log('submitRecipe: スプレッドシートへの書き込み完了');
 
   // 確認メール送信（エラーでもレシピ保存は成功として返す）
+  // メール送信（email変数を含むdataコピーを渡す）
   try {
-    sendConfirmationEmail(data, blenderId);
+    sendConfirmationEmail({ ...data, email: email }, blenderId);
   } catch (emailErr) {
     Logger.log('メール送信エラー: ' + emailErr.toString());
   }
@@ -275,12 +260,16 @@ function submitRecipe(data) {
 
 // ===== 確認メール送信 =====
 function sendConfirmationEmail(data, blenderId) {
-  if (!data.email) return;
+  Logger.log('sendConfirmationEmail 開始: to=' + data.email + ', blenderId=' + blenderId);
+  if (!data.email) {
+    Logger.log('sendConfirmationEmail: メールアドレスなし、スキップ');
+    return;
+  }
 
   const now        = new Date();
   const expiryDate = new Date(now);
   expiryDate.setMonth(expiryDate.getMonth() + 6);
-  const expiryStr  = Utilities.formatDate(expiryDate, 'Asia/Tokyo', 'yyyy年MM月dd日');
+  const expiryStr   = Utilities.formatDate(expiryDate, 'Asia/Tokyo', 'yyyy年MM月dd日');
   const displayDate = data.date
     ? data.date.replace(/-/g, '/')
     : Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
@@ -315,11 +304,14 @@ ${recipeLines}＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 
 MY SAKE WORLD`;
 
-  MailApp.sendEmail({
-    to     : data.email,
-    subject: '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました',
-    body   : body
-  });
+  try {
+    GmailApp.sendEmail(data.email, '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body);
+    Logger.log('sendConfirmationEmail: GmailApp送信成功 to=' + data.email);
+  } catch (e) {
+    Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e.toString());
+    MailApp.sendEmail({ to: data.email, subject: '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body: body });
+    Logger.log('sendConfirmationEmail: MailApp送信完了');
+  }
 }
 
 // ===== 追加注文送信 =====
@@ -331,42 +323,159 @@ function submitAdditionalOrder(data) {
   if (!sheet) {
     sheet = ss.insertSheet(ADDITIONAL_ORDER_SHEET_NAME);
     const headers = [
-      'ブレンダーID', '受信日時', '元レシピID', '同じレシピか', 'レシピ内容',
-      '200ml本数', '720ml本数',
-      '宛名', '電話', '郵便番号', '住所', '建物名', 'ギフトフラグ', '備考'
+      'ブレンダーID', '受信日時', '発注者名', 'メール',
+      '200ml本数', '720ml本数', 'ギフトフラグ',
+      '宛名', '電話', '郵便番号', '住所', '建物名'
     ];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
 
-  // 追加注文にもブレンダーIDを発番
-  const blenderId = getAndIncrementBlenderId();
+  const blenderId = data.blenderId || '';
+  // username + domain で分割送信された場合はGAS側で結合
+  const ordererEmail = data.ordererEmail || (data.ordererEmailUsername && data.ordererEmailDomain
+    ? data.ordererEmailUsername + '@' + data.ordererEmailDomain : '');
   const now     = new Date();
   const dateStr = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
-  // レシピ内容を文字列化
-  let recipeContent = data.sameRecipe
-    ? '最初に登録したレシピと同じ'
-    : (data.blends || []).filter(b => b && b.name).map(b => `${b.name} ${b.ml}ml`).join('、');
+  Logger.log('submitAdditionalOrder 開始: blenderId=' + blenderId + ', orderer=' + data.ordererName);
 
   const row = [
     blenderId,
     dateStr,
-    data.originalId    || '',
-    data.sameRecipe    ? 'はい' : 'いいえ',
-    recipeContent,
+    data.ordererName || '',
+    ordererEmail,
     data.qty200        || 0,
     data.qty720        || 0,
+    data.isGift        ? 'はい' : 'いいえ',
     data.recipientName || '',
     data.phone         || '',
     data.zipcode       || '',
     data.address       || '',
-    data.building      || '',
-    data.isGift        ? 'はい' : 'いいえ',
-    data.notes         || ''
+    data.building      || ''
   ];
 
   sheet.appendRow(row);
-  return { success: true, blenderId: blenderId };
+  Logger.log('submitAdditionalOrder: スプレッドシートへの書き込み完了');
+
+  // 注文完了メール送信（ordererEmail変数を含むdataコピーを渡す）
+  try {
+    sendAdditionalOrderEmail({ ...data, ordererEmail: ordererEmail }, blenderId);
+  } catch (emailErr) {
+    Logger.log('追加注文メール送信エラー: ' + emailErr.toString());
+  }
+
+  return { success: true };
+}
+
+// ===== 追加注文完了メール送信 =====
+function sendAdditionalOrderEmail(data, blenderId) {
+  Logger.log('sendAdditionalOrderEmail 開始: to=' + data.ordererEmail);
+  if (!data.ordererEmail) {
+    Logger.log('sendAdditionalOrderEmail: メールアドレスなし、スキップ');
+    return;
+  }
+
+  const qty200    = parseInt(data.qty200) || 0;
+  const qty720    = parseInt(data.qty720) || 0;
+  const price200  = qty200 * 2000;
+  const price720  = qty720 * 4900;
+  const shipping  = 1000;
+  const total     = price200 + price720 + shipping;
+
+  const body =
+`${data.ordererName || ''}さま
+
+ご注文を承りました。ありがとうございます。
+
+＿＿＿＿＿ ご注文内容 ＿＿＿＿＿
+ブレンダーID：${blenderId}
+
+【数量】
+200ml × ${qty200}本　¥${price200.toLocaleString()}
+720ml × ${qty720}本　¥${price720.toLocaleString()}
+送料：¥${shipping.toLocaleString()}
+─────────────
+合計：¥${total.toLocaleString()}
+
+【お届け先】
+${data.isGift ? '（ギフト）' : ''}
+宛名：${data.recipientName || ''}
+〒${data.zipcode || ''}
+${data.address || ''}${data.building ? ' ' + data.building : ''}
+TEL：${data.phone || ''}
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+
+受注後、約一か月後にお届けいたします。
+ご不明点やご相談は、店舗スタッフまでお気軽にお申し付けくださいませ。
+
+MY SAKE WORLD`;
+
+  const CC_ADDRESS = 'mysakeworldkyotokawaramachi@sakeworld.jp';
+  try {
+    GmailApp.sendEmail(data.ordererEmail, '【MY SAKE WORLD】ご注文を承りました', body, { cc: CC_ADDRESS });
+    Logger.log('sendAdditionalOrderEmail: 送信成功 to=' + data.ordererEmail + ' cc=' + CC_ADDRESS);
+  } catch (e) {
+    Logger.log('sendAdditionalOrderEmail: GmailApp失敗、MailAppで再試行: ' + e.toString());
+    MailApp.sendEmail({ to: data.ordererEmail, cc: CC_ADDRESS, subject: '【MY SAKE WORLD】ご注文を承りました', body: body });
+    Logger.log('sendAdditionalOrderEmail: MailApp送信完了');
+  }
+}
+
+// ===== 注文データ更新（管理者用）=====
+// data.originalBlenderId: 検索キー（現在のブレンダーID）
+// data.blenderId: 新しいブレンダーID
+// その他: 更新するフィールド値
+function updateOrder(data) {
+  if (!data.originalBlenderId) throw new Error('originalBlenderIdが必要です');
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(RECIPE_SHEET_NAME);
+  if (!sheet) throw new Error('レシピシートが見つかりません');
+
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  // ブレンダーIDで対象行を検索
+  let targetRow = -1;
+  for (let i = 2; i <= lastRow; i++) {
+    if (String(sheet.getRange(i, 1).getValue()) === String(data.originalBlenderId)) {
+      targetRow = i;
+      break;
+    }
+  }
+  if (targetRow < 0) throw new Error('対象が見つかりません: ' + data.originalBlenderId);
+
+  // 更新フィールドのマッピング
+  const fieldMap = {
+    'ブレンダーID': data.blenderId,
+    '名前'        : data.name,
+    'ブレンダー名': data.blenderName,
+    'レシピ名'    : data.recipeName,
+    'ラベル色'    : data.labelColor,
+    'メール'      : data.email,
+    'スタッフ備考': data.staffNote,
+  };
+
+  // テキストフィールドを更新
+  headers.forEach((h, i) => {
+    if (fieldMap.hasOwnProperty(h) && fieldMap[h] !== undefined) {
+      sheet.getRange(targetRow, i + 1).setValue(fieldMap[h]);
+    }
+  });
+
+  // ブレンド配合を更新（data.blendsが渡された場合）
+  if (data.blends) {
+    for (let i = 0; i < 8; i++) {
+      const b       = data.blends[i] || {};
+      const nameIdx = headers.indexOf('酒' + (i + 1) + '名');
+      const mlIdx   = headers.indexOf('酒' + (i + 1) + 'ml');
+      if (nameIdx >= 0) sheet.getRange(targetRow, nameIdx + 1).setValue(b.name || '');
+      if (mlIdx   >= 0) sheet.getRange(targetRow, mlIdx   + 1).setValue(b.ml   || '');
+    }
+  }
+
+  Logger.log('updateOrder: ブレンダーID=' + data.originalBlenderId + ' の更新完了');
+  return { success: true };
 }
 
 // ===== お酒を追加 =====
@@ -375,8 +484,26 @@ function addSake(name) {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SAKE_SHEET_NAME);
   if (!sheet) throw new Error('酒リストシートが見つかりません');
-  sheet.appendRow([name.trim()]);
+  // B列（英語名）は空で追加、後からupdateSakeEnNameで更新可能
+  sheet.appendRow([name.trim(), '']);
   return { success: true };
+}
+
+// ===== お酒の英語名を更新 =====
+function updateSakeEnName(data) {
+  if (!data.name) throw new Error('お酒の名前が必要です');
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SAKE_SHEET_NAME);
+  if (!sheet) throw new Error('酒リストシートが見つかりません');
+  const lastRow = sheet.getLastRow();
+  for (let i = 1; i <= lastRow; i++) {
+    if (sheet.getRange(i, 1).getValue() === data.name) {
+      sheet.getRange(i, 2).setValue(data.nameEn || '');
+      Logger.log('updateSakeEnName: ' + data.name + ' → ' + data.nameEn);
+      return { success: true };
+    }
+  }
+  throw new Error('対象が見つかりません: ' + data.name);
 }
 
 // ===== お酒を削除 =====
@@ -403,9 +530,15 @@ function updateStatus(id) {
   if (!sheet) throw new Error('レシピシートが見つかりません');
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
+
+  // ヘッダーから確認済み列を動的に検索
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const confirmCol = headers.indexOf('確認済み') + 1;
+  if (confirmCol === 0) throw new Error('確認済み列が見つかりません');
+
   for (let i = 2; i <= lastRow; i++) {
     if (String(sheet.getRange(i, 1).getValue()) === String(id)) {
-      sheet.getRange(i, lastCol).setValue('✓');
+      sheet.getRange(i, confirmCol).setValue('✓');
       return { success: true };
     }
   }
@@ -419,17 +552,27 @@ function initialize() {
   // --- 酒リストシート ---
   let sakeSheet = ss.getSheetByName(SAKE_SHEET_NAME) || ss.insertSheet(SAKE_SHEET_NAME);
   sakeSheet.clearContents();
-  const sakeList = [['龍勢'],['英勲'],['神蔵'],['神聖'],['にいだしぜんしゅ'],['抱腹絶倒'],['TAMA'],['2013ヴィンテージ']];
-  sakeSheet.getRange(1, 1, sakeList.length, 1).setValues(sakeList);
+  // A列: 日本語名, B列: 英語名
+  const sakeList = [
+    ['龍勢',           'Ryusei'],
+    ['英勲',           'Eikun'],
+    ['神蔵',           'Mikura'],
+    ['神聖',           'Shinsei'],
+    ['にいだしぜんしゅ', 'Niida Shizenshu'],
+    ['抱腹絶倒',       'Hofuku Zettou'],
+    ['TAMA',          'TAMA'],
+    ['2013ヴィンテージ', '2013 Vintage']
+  ];
+  sakeSheet.getRange(1, 1, sakeList.length, 2).setValues(sakeList);
 
   // --- レシピシート ---
-  // 1列目: ブレンダーID（シンプルな連番）、ユーザー入力IDは廃止
+  // 1列目: ブレンダーID（お客様手入力の4桁数字）、末尾にスタッフ備考追加
   let recipeSheet = ss.getSheetByName(RECIPE_SHEET_NAME) || ss.insertSheet(RECIPE_SHEET_NAME);
   const recipeHeaders = [
     'ブレンダーID', '受信日時', '制作日', 'レシピ名', '名前', 'ブレンダー名', 'ラベル色',
     '酒1名','酒1ml','酒2名','酒2ml','酒3名','酒3ml','酒4名','酒4ml',
     '酒5名','酒5ml','酒6名','酒6ml','酒7名','酒7ml','酒8名','酒8ml',
-    'メール', '確認済み'
+    'メール', '確認済み', 'スタッフ備考'
   ];
   recipeSheet.getRange(1, 1, 1, recipeHeaders.length).setValues([recipeHeaders]);
 
@@ -441,14 +584,15 @@ function initialize() {
     ['target_ml',          '40'],
     ['max_rows',           '8'],
     ['guide_text',         'お好みのお酒を組み合わせてオリジナルブレンドを作りましょう'],
-    ['blender_id_counter', '0']  // 次に発番される番号 = counter + 1
+    ['blender_id_counter', '0']
   ]);
 
   // --- 追加注文シート ---
   let addSheet = ss.getSheetByName(ADDITIONAL_ORDER_SHEET_NAME) || ss.insertSheet(ADDITIONAL_ORDER_SHEET_NAME);
   const addHeaders = [
-    'ブレンダーID','受信日時','元レシピID','同じレシピか','レシピ内容',
-    '200ml本数','720ml本数','宛名','電話','郵便番号','住所','建物名','ギフトフラグ','備考'
+    'ブレンダーID', '受信日時', '発注者名', 'メール',
+    '200ml本数', '720ml本数', 'ギフトフラグ',
+    '宛名', '電話', '郵便番号', '住所', '建物名'
   ];
   addSheet.getRange(1, 1, 1, addHeaders.length).setValues([addHeaders]);
 

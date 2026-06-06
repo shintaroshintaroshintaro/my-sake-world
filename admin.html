@@ -764,6 +764,7 @@ function loadFormSettingsAdmin() {
 }
 
 // ===== ① 酒リスト管理 =====
+// listは {name, nameEn} オブジェクトの配列
 function renderSakeList(list) {
   document.getElementById('sakeCountBadge').textContent = list.length;
   if (list.length === 0) {
@@ -771,14 +772,40 @@ function renderSakeList(list) {
       `<div class="empty-state" style="padding:30px"><div>リストが空です</div></div>`;
     return;
   }
-  document.getElementById('sakeListBody').innerHTML = list.map(name =>
-    `<div class="list-item">
-      <span class="list-item-name">🍶 ${esc(name)}</span>
-      <div class="list-item-actions">
+  document.getElementById('sakeListBody').innerHTML = list.map((item, idx) => {
+    // 旧形式（文字列）との後方互換
+    const name   = typeof item === 'string' ? item : (item.name   || '');
+    const nameEn = typeof item === 'string' ? ''   : (item.nameEn || '');
+    const safeEn = nameEn === name ? '' : nameEn; // 日本語名と同じなら空欄表示
+    return `<div class="list-item" style="flex-wrap:wrap;gap:6px;padding:10px 14px">
+      <span class="list-item-name" style="flex:0 0 100%">🍶 ${esc(name)}</span>
+      <div style="display:flex;gap:6px;flex:1;align-items:center">
+        <input type="text" id="en-${idx}" value="${esc(safeEn)}" placeholder="English name (optional)"
+          style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;
+                 font-family:'Noto Serif JP',serif;font-size:13px;outline:none"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        <button class="btn-rename-item" onclick="saveSakeEnName('${esc(name)}','en-${idx}',this)"
+          style="white-space:nowrap">英語名保存</button>
         <button class="btn-delete-item" onclick="deleteSake('${esc(name)}', this)">削除</button>
       </div>
-    </div>`
-  ).join('');
+    </div>`;
+  }).join('');
+}
+
+// 英語名を保存
+function saveSakeEnName(name, inputId, btn) {
+  const nameEn = document.getElementById(inputId).value.trim();
+  btn.disabled = true; btn.textContent = '保存中...';
+  gasPost({ action: 'updateSakeEnName', name, nameEn })
+    .then(data => {
+      if (data.success) {
+        showMsg('msgSake', `「${name}」の英語名を保存しました`, 'success');
+      } else {
+        showMsg('msgSake', data.error || '保存に失敗しました', 'error');
+      }
+    })
+    .catch(err => showMsg('msgSake', '通信エラー: ' + err, 'error'))
+    .finally(() => { btn.disabled = false; btn.textContent = '英語名保存'; });
 }
 
 function addSake() {
