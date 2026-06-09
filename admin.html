@@ -92,7 +92,8 @@
       overflow-x: auto; background: var(--bg-card);
       border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+    /* 列数増加に合わせてmin-widthを拡大 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1200px; }
     thead tr { background: var(--text); color: var(--gold); }
     thead th { padding: 12px 14px; text-align: left; font-weight: 600; letter-spacing: 1px; font-size: 11px; white-space: nowrap; }
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
@@ -234,7 +235,7 @@
     .inline-setting select {
       padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 7px;
       font-family: 'Noto Serif JP', serif; font-size: 15px; outline: none;
-      background: #fff; color: var(--text); -webkit-appearance: none; cursor: pointer;
+      background: #fff; color: var(--text); -webkit-appearance: none; appearance: none; cursor: pointer;
     }
     .inline-setting select:focus { border-color: var(--gold); }
     .inline-setting span { font-size: 14px; color: var(--text-muted); }
@@ -701,30 +702,30 @@ function renderOrdersTable(orders) {
   }
 
   const rows = orders.map((o, idx) => {
-    let blendPills = '';
+    // 受信日時から日付部分（月/日）のみ抽出
+    const rawDate = String(o['受信日時'] || '');
+    const dateShort = rawDate.replace(/^\d{4}\//, '').replace(/ .*$/, ''); // "yyyy/M/D HH:mm:ss" → "M/D"
+
+    // お酒1〜8のml数セルと合計を計算
+    let mlCells = '';
+    let totalMl = 0;
     for (let i = 1; i <= 8; i++) {
-      const name = o[`酒${i}名`];
-      const ml   = o[`酒${i}ml`];
-      if (name) blendPills += `<span class="blend-pill">${esc(name)} ${ml}ml</span>`;
+      const ml = o[`酒${i}ml`];
+      const num = ml !== undefined && ml !== '' ? parseInt(ml) || 0 : 0;
+      totalMl += num;
+      mlCells += `<td style="text-align:center;padding:11px 6px">${num > 0 ? num : ''}</td>`;
     }
-    const labelStr   = esc(o['ラベル色'] || '-');
-    const labelClass = o['ラベル色'] === '黒ラベル' ? 'black-l' : (o['ラベル色'] === '白ラベル' ? 'white-l' : 'custom-l');
-    const confirmedStr = o['確認済み']
-      ? '<span class="confirmed-badge done">✓ 確認済み</span>'
-      : '<span class="confirmed-badge pending">未確認</span>';
 
     return `<tr class="${o['確認済み'] ? 'confirmed-row' : ''}">
-      <td>${esc(o['ブレンダーID'] || '-')}</td>
-      <td>${esc(o['受信日時']  || '-')}</td>
-      <td style="font-weight:600">${esc(o['レシピ名']   || '-')}</td>
+      <td><button class="btn-edit-order" onclick="openEditModal(${idx})" style="margin-right:4px">編集</button>${esc(o['ブレンダーID'] || '-')}</td>
+      <td style="color:var(--text-muted);font-size:12px">${esc(dateShort || '-')}</td>
+      <td style="font-weight:600">${esc(o['名前'] || '-')}</td>
+      <td style="font-size:12px">${esc(o['メール'] || '-')}</td>
       <td>${esc(o['ブレンダー名'] || '-')}</td>
-      <td class="blend-cell"><div class="blend-pills">${blendPills || '-'}</div></td>
-      <td><span class="label-badge ${labelClass}">${labelStr}</span></td>
-      <td>${esc(o['名前'] || '-')}</td>
-      <td>${esc(o['メール']  || '-')}</td>
-      <td style="max-width:150px;white-space:normal;font-size:12px;color:var(--text-muted)">${esc(o['スタッフ備考'] || '')}</td>
-      <td>${confirmedStr}</td>
-      <td><button class="btn-edit-order" onclick="openEditModal(${idx})">編集</button></td>
+      <td>${esc(o['レシピ名'] || '-')}</td>
+      ${mlCells}
+      <td style="text-align:center;font-weight:700;color:var(--gold)">${totalMl > 0 ? totalMl : ''}</td>
+      <td style="max-width:160px;white-space:normal;font-size:12px;color:var(--text-muted)">${esc(o['スタッフ備考'] || '')}</td>
     </tr>`;
   }).join('');
 
@@ -732,9 +733,22 @@ function renderOrdersTable(orders) {
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>ブレンダーID</th><th>受信日時</th><th>レシピ名</th><th>ブレンダー名</th>
-          <th>ブレンド内容</th><th>ラベル色</th><th>お名前</th>
-          <th>メール</th><th>スタッフ備考</th><th>確認状況</th><th>操作</th>
+          <th style="min-width:80px">ID</th>
+          <th style="min-width:50px">登録日</th>
+          <th style="min-width:90px">製作者</th>
+          <th style="min-width:140px">メール</th>
+          <th style="min-width:80px">ブレンダー</th>
+          <th style="min-width:100px">タイトル</th>
+          <th style="text-align:center;min-width:36px">1</th>
+          <th style="text-align:center;min-width:36px">2</th>
+          <th style="text-align:center;min-width:36px">3</th>
+          <th style="text-align:center;min-width:36px">4</th>
+          <th style="text-align:center;min-width:36px">5</th>
+          <th style="text-align:center;min-width:36px">6</th>
+          <th style="text-align:center;min-width:36px">7</th>
+          <th style="text-align:center;min-width:36px">8</th>
+          <th style="text-align:center;min-width:36px">計</th>
+          <th style="min-width:100px">備考</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>

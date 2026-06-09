@@ -111,23 +111,41 @@
     .at-mark { font-weight:700; font-size:20px; color:var(--text-muted); flex-shrink:0; line-height:1; }
 
     /* ===== ブレンド行 ===== */
-    .blend-header { display:grid; grid-template-columns:22px 1fr 96px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
+    .blend-header { display:grid; grid-template-columns:22px 1fr 90px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
     .blend-header span { font-size:12px; font-weight:700; color:var(--text-muted); letter-spacing:1px; }
-    .blend-row { display:grid; grid-template-columns:22px 1fr 96px 38px; gap:6px; margin-bottom:8px; align-items:center; }
-    .blend-num { font-size:14px; font-weight:700; color:var(--text-muted); text-align:right; line-height:1; padding-top:14px; }
+    .blend-row { display:grid; grid-template-columns:22px 1fr 90px 38px; gap:6px; margin-bottom:8px; align-items:center; }
+    .blend-num { font-size:14px; font-weight:700; color:var(--text-muted); text-align:right; line-height:1; }
     .blend-row select { font-size:15px; padding:10px 8px; }
-    .ml-wrap { position:relative; }
-    .ml-wrap input[type="number"] { padding:10px 30px 10px 8px; text-align:center; font-size:16px; -moz-appearance:textfield; }
-    .ml-wrap input::-webkit-inner-spin-button, .ml-wrap input::-webkit-outer-spin-button { -webkit-appearance:none; }
-    .ml-unit { position:absolute; right:32px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text-muted); pointer-events:none; }
-    .ml-spin { position:absolute; right:0; top:0; bottom:0; width:30px; display:flex; flex-direction:column; }
-    .ml-spin button {
-      flex:1; border:none; background:var(--gold-pale); color:var(--gold); font-size:14px;
-      cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700;
+
+    /* ===== ドラムロール式ml選択 ===== */
+    .drum-wrap {
+      position:relative; width:100%; height:200px; overflow:hidden;
+      background:#fff; border:2px solid var(--border); border-radius:8px;
+      touch-action:none; user-select:none; -webkit-user-select:none; cursor:ns-resize;
     }
-    .ml-spin button:first-child { border-radius:0 6px 0 0; border-bottom:1px solid var(--border); }
-    .ml-spin button:last-child  { border-radius:0 0 6px 0; }
-    .ml-spin button:active { background:var(--gold); color:#fff; }
+    .drum-wrap:focus { border-color:var(--gold); outline:none; }
+    /* アイテムリスト：上下80pxパディングで先頭/末尾アイテムを中央揃え可能に */
+    .drum-list { padding:80px 0; will-change:transform; }
+    .drum-item {
+      height:40px; display:flex; align-items:center; justify-content:center;
+      font-family:'Noto Serif JP',serif; font-size:16px; color:var(--text-muted);
+      flex-shrink:0; transition:font-size 0.1s,color 0.1s,opacity 0.1s;
+    }
+    /* 選択中アイテムのハイライトバー（中央固定）*/
+    .drum-select-bar {
+      position:absolute; top:50%; left:0; right:0; height:40px;
+      transform:translateY(-50%); background:var(--gold-pale);
+      border-top:2px solid var(--gold); border-bottom:2px solid var(--gold);
+      pointer-events:none; z-index:2;
+    }
+    /* 上下フェードオーバーレイ */
+    .drum-fade-top, .drum-fade-bottom {
+      position:absolute; left:0; right:0; height:78px; pointer-events:none; z-index:3;
+    }
+    .drum-fade-top    { top:0;    background:linear-gradient(to bottom, rgba(255,255,255,1) 20%, transparent); }
+    .drum-fade-bottom { bottom:0; background:linear-gradient(to top,   rgba(255,255,255,1) 20%, transparent); }
+    /* ml単位ラベル */
+    .drum-unit { position:absolute; right:7px; bottom:9px; font-size:10px; color:var(--text-muted); z-index:4; pointer-events:none; letter-spacing:0.5px; }
     .btn-del {
       width:38px; height:38px; border:2px solid #E8D0D0; border-radius:8px;
       background:#FFF5F5; color:#C0392B; font-size:16px; cursor:pointer;
@@ -1056,23 +1074,35 @@ function addBlendRow(isAdd) {
     const display = (currentLang === 'en' && s.nameEn) ? s.nameEn : s.name;
     return `<option value="${esc(s.name)}">${esc(display)}</option>`;
   }).join('');
+  // ドラムアイテム（1〜TARGET_ML）を生成
+  let drumItems = '';
+  for (let v = 1; v <= TARGET_ML; v++) {
+    drumItems += `<div class="drum-item" data-val="${v}">${v}</div>`;
+  }
+
   div.innerHTML = `
     <span class="blend-num">${newCount}.</span>
     <select id="sake-${rowId}" onchange="updateTotal(${isAdd})">
       <option value="">${t('select.placeholder')}</option>${opts}
     </select>
-    <div class="ml-wrap">
-      <input type="number" id="ml-${rowId}" value="0" min="0" max="${TARGET_ML}" step="1"
-        oninput="clampMl(this);updateTotal(${isAdd})" style="padding-right:34px">
-      <span class="ml-unit">ml</span>
-      <div class="ml-spin">
-        <button type="button" onclick="stepMl('${rowId}',1,${isAdd})">▲</button>
-        <button type="button" onclick="stepMl('${rowId}',-1,${isAdd})">▼</button>
-      </div>
+    <div class="drum-wrap" id="drum-${rowId}" tabindex="0"
+      ontouchstart="drumStart(event,'${rowId}')"
+      ontouchmove="drumMove(event,'${rowId}')"
+      ontouchend="drumEnd(event,'${rowId}',${isAdd})"
+      onmousedown="drumMouseDown(event,'${rowId}',${isAdd})"
+      onwheel="drumWheel(event,'${rowId}',${isAdd})">
+      <div class="drum-select-bar"></div>
+      <div class="drum-fade-top"></div>
+      <div class="drum-fade-bottom"></div>
+      <div class="drum-list" id="dlist-${rowId}">${drumItems}</div>
+      <span class="drum-unit">ml</span>
     </div>
+    <input type="hidden" id="ml-${rowId}" value="1">
     <button class="btn-del" onclick="removeBlendRow('${rowId}',${isAdd})">×</button>`;
 
   document.getElementById(containerId).appendChild(div);
+  // 初期値1でドラムを初期化（アニメーションなし）
+  drumSetVal(rowId, 1, false);
   updateBlendAddButton(isAdd);
   updateTotal(isAdd);
 }
@@ -1106,16 +1136,114 @@ function updateBlendAddButton(isAdd) {
   btn.textContent = t('blend.add');
 }
 
-function stepMl(rowId, delta, isAdd) {
-  const inp = document.getElementById(`ml-${rowId}`);
-  let v = (parseInt(inp.value)||0) + delta;
-  inp.value = Math.min(TARGET_ML, Math.max(0, v));
-  updateTotal(isAdd);
+// ===== ドラムロール制御 =====
+const DRUM_H   = 40;   // 各アイテムの高さ(px)
+const drumDrag = {};   // ドラッグ中の状態管理
+
+// ml値 → translateY（val=1のとき ty=0、上にスクロールするほど負の値）
+function drumValToTy(val) {
+  return -(val - 1) * DRUM_H;
 }
 
-function clampMl(inp) {
-  let v = parseInt(inp.value) || 0;
-  inp.value = Math.min(TARGET_ML, Math.max(0, v));
+// translateY → ml値（最近傍にスナップ）
+function drumTyToVal(ty) {
+  const idx = Math.round(-ty / DRUM_H);
+  return Math.max(1, Math.min(TARGET_ML, idx + 1));
+}
+
+// インライン style から現在の translateY を取得
+function drumGetTY(rowId) {
+  const list = document.getElementById(`dlist-${rowId}`);
+  if (!list || !list.style.transform) return drumValToTy(1);
+  const m = list.style.transform.match(/translateY\((-?[\d.]+)px\)/);
+  return m ? parseFloat(m[1]) : drumValToTy(1);
+}
+
+// 各アイテムのフォントサイズ・色・不透明度を現在値に合わせて更新
+function drumUpdateItems(rowId, val) {
+  const list = document.getElementById(`dlist-${rowId}`);
+  if (!list) return;
+  list.querySelectorAll('.drum-item').forEach(el => {
+    const d = Math.abs(parseInt(el.dataset.val) - val);
+    el.style.fontSize   = d === 0 ? '24px' : '16px';
+    el.style.fontWeight = d === 0 ? '700'  : '400';
+    el.style.color      = d === 0 ? '#B8860B' : 'var(--text-muted)';
+    el.style.opacity    = d === 0 ? '1'    : String(Math.max(0.13, 1 - d * 0.24));
+  });
+}
+
+// 値をセット（animate=true でスムーズスクロール）
+function drumSetVal(rowId, val, animate, isAdd) {
+  const v    = Math.max(1, Math.min(TARGET_ML, val));
+  const list = document.getElementById(`dlist-${rowId}`);
+  const hid  = document.getElementById(`ml-${rowId}`);
+  if (!list || !hid) return;
+  list.style.transition = animate ? 'transform 0.25s cubic-bezier(0.33,1,0.68,1)' : 'none';
+  list.style.transform  = `translateY(${drumValToTy(v)}px)`;
+  hid.value = String(v);
+  drumUpdateItems(rowId, v);
+  if (typeof isAdd !== 'undefined') updateTotal(isAdd);
+}
+
+// タッチ/マウス操作開始
+function drumStart(e, rowId) {
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  drumDrag[rowId] = {
+    startY: y, startTY: drumGetTY(rowId),
+    lastY:  y, lastT:   Date.now(), vel: 0
+  };
+  const list = document.getElementById(`dlist-${rowId}`);
+  if (list) list.style.transition = 'none';
+  if (e.cancelable) e.preventDefault();
+}
+
+// タッチ/マウス移動（ドラッグ中のリアルタイム更新）
+function drumMove(e, rowId) {
+  if (!drumDrag[rowId]) return;
+  if (e.cancelable) e.preventDefault();
+  const y  = e.touches ? e.touches[0].clientY : e.clientY;
+  const d  = drumDrag[rowId];
+  const dt = Date.now() - d.lastT;
+  d.vel    = dt > 0 ? (y - d.lastY) / dt : 0;
+  d.lastY  = y; d.lastT = Date.now();
+  const ty   = d.startTY + (y - d.startY);
+  const list = document.getElementById(`dlist-${rowId}`);
+  const hid  = document.getElementById(`ml-${rowId}`);
+  if (list) list.style.transform = `translateY(${ty}px)`;
+  if (hid)  hid.value = String(drumTyToVal(ty));
+  drumUpdateItems(rowId, drumTyToVal(ty));
+}
+
+// タッチ/マウス終了（モーメンタム付きスナップ）
+function drumEnd(e, rowId, isAdd) {
+  const d = drumDrag[rowId];
+  if (!d) return;
+  delete drumDrag[rowId];
+  const currentTY = drumGetTY(rowId);
+  // 速度×係数でフリック感を演出
+  const targetTY  = currentTY + d.vel * 80;
+  drumSetVal(rowId, drumTyToVal(targetTY), true, isAdd);
+}
+
+// マウスダウン：グローバルイベントで drag / up を追跡（デスクトップ対応）
+function drumMouseDown(e, rowId, isAdd) {
+  e.preventDefault();
+  drumStart(e, rowId);
+  const onMove = ev => drumMove(ev, rowId);
+  const onUp   = ev => {
+    drumEnd(ev, rowId, isAdd);
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onUp);
+}
+
+// マウスホイールで1刻み変更（デスクトップ対応）
+function drumWheel(e, rowId, isAdd) {
+  e.preventDefault();
+  const cur = parseInt(document.getElementById(`ml-${rowId}`).value) || 1;
+  drumSetVal(rowId, cur + (e.deltaY > 0 ? 1 : -1), true, isAdd);
 }
 
 function updateTotal(isAdd) {
