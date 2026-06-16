@@ -260,6 +260,7 @@ function submitRecipe(data) {
 
 // ===== 確認メール送信 =====
 const CONFIRM_FROM_ADDRESS = 'mysakeworld@gmail.com'; // 送信元アドレス（このGoogleアカウントでGASプロジェクトを実行する前提）
+const CONFIRM_FROM_NAME    = 'MY SAKE WORLD';
 function sendConfirmationEmail(data, blenderId) {
   Logger.log('sendConfirmationEmail 開始: to=' + data.email + ', blenderId=' + blenderId);
   if (!data.email) {
@@ -305,13 +306,21 @@ ${recipeLines}＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 
 MY SAKE WORLD`;
 
+  const subject = '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました';
   try {
-    GmailApp.sendEmail(data.email, '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body, { from: CONFIRM_FROM_ADDRESS });
-    Logger.log('sendConfirmationEmail: GmailApp送信成功 to=' + data.email);
+    GmailApp.sendEmail(data.email, subject, body, { from: CONFIRM_FROM_ADDRESS, name: CONFIRM_FROM_NAME });
+    Logger.log('sendConfirmationEmail: 送信成功 from=' + CONFIRM_FROM_ADDRESS + ' to=' + data.email);
   } catch (e) {
-    Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e.toString());
-    MailApp.sendEmail({ to: data.email, from: CONFIRM_FROM_ADDRESS, subject: '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body: body });
-    Logger.log('sendConfirmationEmail: MailApp送信完了');
+    // エイリアスが使えない場合に備え、fromを指定せずデフォルトのアドレスで再試行
+    Logger.log('sendConfirmationEmail: from指定での送信に失敗、デフォルトアドレスで再試行: ' + e.toString());
+    try {
+      GmailApp.sendEmail(data.email, subject, body);
+      Logger.log('sendConfirmationEmail: デフォルトアドレスで送信成功 to=' + data.email);
+    } catch (e2) {
+      Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e2.toString());
+      MailApp.sendEmail({ to: data.email, subject: subject, body: body });
+      Logger.log('sendConfirmationEmail: MailApp送信完了（デフォルトアドレス）');
+    }
   }
 }
 
@@ -412,13 +421,21 @@ TEL：${data.phone || ''}
 MY SAKE WORLD`;
 
   const CC_ADDRESS = 'mysakeworldkyotokawaramachi@sakeworld.jp';
+  const subject    = '【MY SAKE WORLD】ご注文を承りました';
   try {
-    GmailApp.sendEmail(data.ordererEmail, '【MY SAKE WORLD】ご注文を承りました', body, { cc: CC_ADDRESS });
-    Logger.log('sendAdditionalOrderEmail: 送信成功 to=' + data.ordererEmail + ' cc=' + CC_ADDRESS);
+    GmailApp.sendEmail(data.ordererEmail, subject, body, { cc: CC_ADDRESS, from: CONFIRM_FROM_ADDRESS, name: CONFIRM_FROM_NAME });
+    Logger.log('sendAdditionalOrderEmail: 送信成功 from=' + CONFIRM_FROM_ADDRESS + ' to=' + data.ordererEmail + ' cc=' + CC_ADDRESS);
   } catch (e) {
-    Logger.log('sendAdditionalOrderEmail: GmailApp失敗、MailAppで再試行: ' + e.toString());
-    MailApp.sendEmail({ to: data.ordererEmail, cc: CC_ADDRESS, subject: '【MY SAKE WORLD】ご注文を承りました', body: body });
-    Logger.log('sendAdditionalOrderEmail: MailApp送信完了');
+    // エイリアスが使えない場合に備え、fromを指定せずデフォルトのアドレスで再試行
+    Logger.log('sendAdditionalOrderEmail: from指定での送信に失敗、デフォルトアドレスで再試行: ' + e.toString());
+    try {
+      GmailApp.sendEmail(data.ordererEmail, subject, body, { cc: CC_ADDRESS });
+      Logger.log('sendAdditionalOrderEmail: デフォルトアドレスで送信成功 to=' + data.ordererEmail + ' cc=' + CC_ADDRESS);
+    } catch (e2) {
+      Logger.log('sendAdditionalOrderEmail: GmailApp失敗、MailAppで再試行: ' + e2.toString());
+      MailApp.sendEmail({ to: data.ordererEmail, cc: CC_ADDRESS, subject: subject, body: body });
+      Logger.log('sendAdditionalOrderEmail: MailApp送信完了（デフォルトアドレス）');
+    }
   }
 }
 
