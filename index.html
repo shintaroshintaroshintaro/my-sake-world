@@ -19,17 +19,17 @@
     body { font-family:'Noto Serif JP',serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.6; }
 
     /* ===== ヘッダー ===== */
-    .header { background:var(--text); color:#fff; padding:14px 16px 10px; position:relative; }
-    .header-inner { display:flex; align-items:flex-start; justify-content:space-between; }
-    .header-logo-area { flex:1; text-align:center; }
-    .header-subtitle { font-size:10px; letter-spacing:4px; color:var(--gold); margin-bottom:2px; }
-    .header-logo { font-size:20px; font-weight:700; letter-spacing:3px; color:#fff; line-height:1; }
+    .header { background:var(--text); color:#fff; padding:16px 16px 12px; position:relative; }
+    .header-inner { display:flex; justify-content:center; }
+    .header-logo-area { text-align:center; }
+    .header-subtitle { font-size:10px; letter-spacing:4px; color:var(--gold); margin-bottom:4px; }
+    .header-logo { font-size:26px; font-weight:800; letter-spacing:3px; color:#fff; line-height:1; }
     .header-logo span { color:var(--gold); }
-    .header-sheet { font-size:11px; font-weight:700; letter-spacing:3px; color:#fff; margin-top:3px; }
-    .header-tagline { font-size:10px; color:var(--gold); letter-spacing:2px; margin-top:3px; }
+    .header-sheet { font-size:11px; font-weight:600; letter-spacing:3px; color:#fff; opacity:0.85; margin-top:4px; }
+    .header-tagline { font-size:10px; color:var(--gold); letter-spacing:2px; margin-top:4px; }
 
-    /* ===== 言語切替 ===== */
-    .lang-switch { display:flex; gap:4px; flex-shrink:0; padding-top:2px; }
+    /* ===== 言語切替（タイトル右上に固定配置） ===== */
+    .lang-switch { position:absolute; top:16px; right:16px; display:flex; gap:4px; }
     .lang-btn {
       padding:5px 10px; border-radius:4px; border:1px solid #a89070;
       background:transparent; color:#a89070; font-size:11px; cursor:pointer;
@@ -39,18 +39,19 @@
 
     /* ===== ステップインジケーター ===== */
     .step-area { max-width:390px; margin:0 auto; padding:14px 20px 4px; }
-    .step-row { display:flex; align-items:center; }
+    /* step-row / step-labels で同一のグリッド列を使い、番号とラベルの中央位置を揃える */
+    .step-row { display:grid; grid-template-columns:32px 1fr 32px 1fr 32px; align-items:center; }
     .step-dot {
       width:32px; height:32px; border-radius:50%; border:2px solid var(--border);
       background:#fff; display:flex; align-items:center; justify-content:center;
-      font-size:14px; font-weight:700; color:var(--text-muted); flex-shrink:0; transition:all 0.3s;
+      font-size:14px; font-weight:700; color:var(--text-muted); transition:all 0.3s;
     }
     .step-dot.active { border-color:var(--gold); background:var(--gold); color:#fff; }
     .step-dot.done   { border-color:var(--gold); background:var(--gold-pale); color:var(--gold); }
-    .step-line { flex:1; height:2px; background:var(--border); margin:0 4px; transition:background 0.3s; }
+    .step-line { height:2px; background:var(--border); margin:0 4px; transition:background 0.3s; }
     .step-line.done { background:var(--gold); }
-    .step-labels { display:flex; justify-content:space-between; padding:4px 4px 0; }
-    .step-lbl { font-size:11px; color:var(--text-muted); text-align:center; flex:1; }
+    .step-labels { display:grid; grid-template-columns:32px 1fr 32px 1fr 32px; padding:4px 4px 0; }
+    .step-lbl { font-size:11px; color:var(--text-muted); text-align:center; }
     .step-lbl.active { color:var(--gold); font-weight:700; }
 
     /* ===== コンテナ ===== */
@@ -111,10 +112,9 @@
     .at-mark { font-weight:700; font-size:20px; color:var(--text-muted); flex-shrink:0; line-height:1; }
 
     /* ===== ブレンド行 ===== */
-    .blend-header { display:grid; grid-template-columns:22px 1fr 90px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
+    .blend-header { display:grid; grid-template-columns:1fr 90px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
     .blend-header span { font-size:12px; font-weight:700; color:var(--text-muted); letter-spacing:1px; }
-    .blend-row { display:grid; grid-template-columns:22px 1fr 90px 38px; gap:6px; margin-bottom:8px; align-items:center; }
-    .blend-num { font-size:14px; font-weight:700; color:var(--text-muted); text-align:right; line-height:1; }
+    .blend-row { display:grid; grid-template-columns:1fr 90px 38px; gap:6px; margin-bottom:8px; align-items:center; }
     .blend-row select { font-size:15px; padding:10px 8px; }
 
     /* ===== ドラムロール式ml選択 ===== */
@@ -125,7 +125,7 @@
     }
     .drum-wrap:focus { border-color:var(--gold); outline:none; }
     /* アイテムリスト：上下80pxパディングで先頭/末尾アイテムを中央揃え可能に */
-    .drum-list { padding:80px 0; will-change:transform; }
+    .drum-list { padding:80px 0; will-change:transform; position:relative; z-index:2; }
     .drum-item {
       height:40px; display:flex; align-items:center; justify-content:center;
       font-family:'Noto Serif JP',serif; font-size:16px; color:var(--text-muted);
@@ -136,7 +136,7 @@
       position:absolute; top:50%; left:0; right:0; height:40px;
       transform:translateY(-50%); background:var(--gold-pale);
       border-top:2px solid var(--gold); border-bottom:2px solid var(--gold);
-      pointer-events:none; z-index:2;
+      pointer-events:none; z-index:1;
     }
     /* 上下フェードオーバーレイ */
     .drum-fade-top, .drum-fade-bottom {
@@ -273,9 +273,6 @@
     .btn-row { display:flex; gap:10px; }
     .btn-row .btn-secondary { flex:none; width:90px; padding:15px 0; }
 
-    /* ===== ガイドカード ===== */
-    .guide-card { background:var(--gold-pale); border:1px solid var(--gold); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px; font-size:16px; color:var(--text-muted); text-align:center; line-height:1.7; }
-
     /* ===== ローディング ===== */
     .loading-wrap { text-align:center; padding:60px 20px; }
     .spinner {
@@ -316,17 +313,16 @@
 <!-- ===== ヘッダー ===== -->
 <div class="header">
   <div class="header-inner">
-    <div style="width:76px"></div>
     <div class="header-logo-area">
       <div class="header-subtitle">BLEND YOUR OWN SAKE</div>
       <div class="header-logo">MY <span>SAKE</span> WORLD</div>
       <div class="header-sheet">FINAL RECIPE SHEET</div>
       <div class="header-tagline" data-t="header.tagline">マイブレンド体験</div>
     </div>
-    <div class="lang-switch">
-      <button class="lang-btn active" id="btnJa" onclick="setLang('ja')">日本語</button>
-      <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
-    </div>
+  </div>
+  <div class="lang-switch">
+    <button class="lang-btn active" id="btnJa" onclick="setLang('ja')">日本語</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
   </div>
 </div>
 
@@ -341,7 +337,9 @@
   </div>
   <div class="step-labels">
     <div class="step-lbl active" id="mlbl1" data-t="step.recipe">レシピ入力</div>
+    <div></div>
     <div class="step-lbl" id="mlbl2" data-t="step.confirm">確認</div>
+    <div></div>
     <div class="step-lbl" id="mlbl3" data-t="step.done">完了</div>
   </div>
 </div>
@@ -357,7 +355,9 @@
   </div>
   <div class="step-labels">
     <div class="step-lbl active" id="albl1" data-t="step.order">追加注文</div>
+    <div></div>
     <div class="step-lbl" id="albl2" data-t="step.confirm">確認</div>
+    <div></div>
     <div class="step-lbl" id="albl3" data-t="step.done">完了</div>
   </div>
 </div>
@@ -375,17 +375,13 @@
   <!-- ========== STEP 1: レシピ入力 ========== -->
   <div class="screen" id="step1">
 
-    <div class="guide-card hidden" id="guideCard">
-      <span id="guideText"></span>
-    </div>
-
     <!-- 基本情報 -->
     <div class="card">
       <div class="section-title" data-t="section.basic">基本情報</div>
 
       <!-- ブレンダーID（お客様手入力・4桁数字）-->
       <div class="field" id="fId">
-        <label data-t="field.id">ブレンダーID<span class="req">*</span></label>
+        <label data-t="field.id">Blender No.<span class="req">*</span></label>
         <input type="text" id="inId" inputmode="numeric" pattern="[0-9]*" maxlength="4"
           data-ph="ph.id" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         <div class="err-msg" id="eId" data-t="err.id">4桁の数字を入力してください</div>
@@ -398,13 +394,13 @@
       </div>
 
       <div class="field" id="fBlender">
-        <label data-t="field.blender">Blender名<span class="req">*</span></label>
+        <label data-t="field.blender">Blender：お酒をつくったあなたのニックネーム<span class="req">*</span></label>
         <input type="text" id="inBlender" maxlength="50" data-ph="ph.blender">
         <div class="err-msg" id="eBlender" data-t="err.required">この項目は必須です</div>
       </div>
 
       <div class="field" id="fTitle">
-        <label data-t="field.title">Title（お酒の名前）<span class="req">*</span></label>
+        <label data-t="field.title">Title：お酒の名前<span class="req">*</span></label>
         <input type="text" id="inTitle" maxlength="60" data-ph="ph.title">
         <div class="err-msg" id="eTitle" data-t="err.required">この項目は必須です</div>
       </div>
@@ -432,7 +428,6 @@
     <div class="card">
       <div class="section-title" data-t="section.blend">ブレンド配合</div>
       <div class="blend-header">
-        <span></span>
         <span data-t="blend.sake">お酒</span>
         <span style="text-align:center" data-t="blend.ml">ml</span>
         <span></span>
@@ -487,6 +482,9 @@
       <div class="section-title" id="confirmCardTitle">入力内容の確認</div>
       <div id="confirmList" class="confirm-list"></div>
     </div>
+    <p style="text-align:center;font-size:11px;margin:-4px 0 14px">
+      <a href="https://nft.sakeworld.jp/privacy-policy" target="_blank" rel="noopener" style="color:var(--text-muted)" data-t="privacy.link">プライバシーポリシー</a>
+    </p>
     <div class="btn-row" style="padding-bottom:14px">
       <button class="btn-secondary" onclick="goStep1()" data-t="btn.edit">修正する</button>
       <button class="btn-primary" id="btnConfirm" onclick="doSubmitRecipe()" data-t="btn.confirm">確定する</button>
@@ -504,14 +502,12 @@
       <div class="complete-title" data-t="complete.title">登録完了</div>
       <div class="complete-msg" id="completeMsgText"></div>
       <div class="blender-id-box">
-        <div class="blender-id-lbl" data-t="complete.id.label">あなたのブレンダーID</div>
+        <div class="blender-id-lbl" data-t="complete.id.label">あなたのBlender No.</div>
         <div class="blender-id-val" id="displayId">----</div>
       </div>
-      <button class="btn-ghost mt16" onclick="goStepA1()" id="btnAdditional" data-t="btn.additional">
+      <button class="btn-ghost mt16" onclick="openSouvenirLink()" id="btnAdditional" data-t="btn.additional">
         追い瓶・ペアリングチェンジはいかが？
       </button>
-      <!-- 英語版のみ表示する注記 -->
-      <p id="additionalNote" class="hidden" style="font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.6" data-t="btn.additional.note">For those residing in Japan only.</p>
       <!-- 日本語版のお届け目安（ボタン下に移動）-->
       <p id="completeDelivery" style="font-size:15px;color:var(--text-muted);margin-top:14px;line-height:1.7" data-t="complete.delivery">受注後、約一か月後にお届けいたします。</p>
     </div>
@@ -538,7 +534,7 @@
       </div>
 
       <div class="field mb0" id="fABlenderId">
-        <label data-t="field.id">ブレンダーID<span class="req">*</span></label>
+        <label data-t="field.id">Blender No.<span class="req">*</span></label>
         <input type="text" id="inABlenderId" inputmode="numeric" maxlength="4"
           data-ph="ph.id" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         <div class="err-msg" id="eABlenderId" data-t="err.id">4桁の数字を入力してください</div>
@@ -685,6 +681,12 @@
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzMw1331WiWSO4XeMQFrsA2kzv62IQ40qL5VDVrEYhBVTKuoixhhTo8opS5fizTRp2K/exec';
 let TARGET_ML      = 40;
 let MAX_BLEND_ROWS = 8;
+const SHOPIFY_COLLECTIONS_URL = 'https://assemblageclub.myshopify.com/collections/all';
+
+// 完了画面の追い瓶ボタン：Shopifyの商品一覧を新しいタブで開く
+function openSouvenirLink() {
+  window.open(SHOPIFY_COLLECTIONS_URL, '_blank', 'noopener');
+}
 
 // ===== 翻訳辞書 =====
 const T = {
@@ -704,10 +706,10 @@ const T = {
     'section.orderer'         : '発注者情報',
     'section.qty'             : '本数・容量',
     'section.ship'            : '発送先',
-    'field.id'                : 'Blender ID',
+    'field.id'                : 'Blender No.',
     'field.name'              : 'お名前',
-    'field.blender'           : 'Blender名',
-    'field.title'             : 'Title（お酒の名前）',
+    'field.blender'           : 'Blender：お酒をつくったあなたのニックネーム',
+    'field.title'             : 'Title：お酒の名前',
     'field.date'              : 'Date',
     'field.email'             : 'メールアドレス',
     'field.emailConfirm'      : 'メールアドレス（確認）',
@@ -740,7 +742,7 @@ const T = {
     'complete.title'          : '登録完了',
     'complete.msg'            : 'あなたのMy Sakeのレシピが登録できました！\nあなたのレシピ詳細をメールでお送りします。',
     'complete.delivery'       : '受注後、約一か月後にお届けいたします。',
-    'complete.id.label'       : 'あなたのブレンダーID',
+    'complete.id.label'       : 'あなたのBlender No.',
     'additional.greeting'     : 'ありがとうございます！',
     'qty.200'                 : '200ml × 本数',
     'qty.720'                 : '720ml × 本数',
@@ -758,7 +760,6 @@ const T = {
     'ship.giftSub'            : 'お届け伝票にはご発注者様のお名前を記載させていただきます。',
     'additional.complete.title': 'ありがとうございます',
     'additional.complete.msg' : 'ご注文内容をメールにてお送りいたしました。\nレジにてご精算をお願いいたします。',
-    'btn.additional.note'     : '',
     'opt'                     : '（任意）',
     'err.required'            : 'この項目は必須です',
     'err.id'                  : '4桁の数字を入力してください',
@@ -767,6 +768,7 @@ const T = {
     'err.blend'               : '少なくとも1種のお酒を選択してください',
     'err.label'               : 'ラベルの色を選択してください',
     'err.exact'               : '合計がちょうど40mlになるよう調整してください',
+    'err.overTotal'           : '合計が<br>{ml}mlを超えています',
     'err.qty'                 : '本数を1本以上入力してください',
     'err.zip'                 : '郵便番号を7桁で入力してください',
     'zip.searching'           : '検索中...',
@@ -775,6 +777,7 @@ const T = {
     'zip.error'               : '検索に失敗しました',
     'select.placeholder'      : '-- 選択してください --',
     'conf.sakeList'           : 'レシピ',
+    'privacy.link'            : 'プライバシーポリシー',
   },
   en: {
     'header.tagline'          : 'My Blend Experience',
@@ -787,12 +790,12 @@ const T = {
     'section.basic'           : 'Basic Info',
     'section.label'           : 'Label',
     'section.blend'           : 'Blend Recipe',
-    'section.contact'         : 'Contact',
+    'section.contact'         : 'Email address to receive your recipe',
     'section.confirm'         : 'Confirm Details',
     'section.orderer'         : 'Orderer Info',
     'section.qty'             : 'Quantity',
     'section.ship'            : 'Shipping',
-    'field.id'                : 'Blender ID',
+    'field.id'                : 'Blender No.',
     'field.name'              : 'Full Name',
     'field.blender'           : 'Blender Name',
     'field.title'             : 'Name of your Sake',
@@ -828,7 +831,7 @@ const T = {
     'complete.title'          : 'Registration Complete',
     'complete.msg'            : 'Your My Sake recipe has been registered!\nWe will send you the details by email.',
     'complete.delivery'       : '',
-    'complete.id.label'       : 'Your Blender ID',
+    'complete.id.label'       : 'Your Blender No.',
     'additional.greeting'     : 'Thank you!',
     'qty.200'                 : '200ml × Bottles',
     'qty.720'                 : '720ml × Bottles',
@@ -846,7 +849,6 @@ const T = {
     'ship.giftSub'            : 'The delivery slip will show the orderer\'s name.',
     'additional.complete.title': 'Thank You',
     'additional.complete.msg' : 'Your order details have been sent by email.\nPlease proceed to the register for payment.',
-    'btn.additional.note'     : 'For those residing in Japan only.',
     'opt'                     : ' (Optional)',
     'err.required'            : 'This field is required',
     'err.id'                  : 'Please enter a 4-digit number',
@@ -855,6 +857,7 @@ const T = {
     'err.blend'               : 'Please select at least one sake',
     'err.label'               : 'Please select a label color',
     'err.exact'               : 'Please adjust to exactly 40ml total',
+    'err.overTotal'           : 'Exceeding {ml}ml..<br>Please re-enter',
     'err.qty'                 : 'Please enter at least 1 bottle',
     'err.zip'                 : 'Please enter a 7-digit postal code',
     'zip.searching'           : 'Searching...',
@@ -863,6 +866,7 @@ const T = {
     'zip.error'               : 'Search failed',
     'select.placeholder'      : '-- Please select --',
     'conf.sakeList'           : 'Recipe',
+    'privacy.link'            : 'Privacy Policy',
   }
 };
 
@@ -899,9 +903,9 @@ function applyT() {
   updateBlendAddButton(false);
   updateBlendAddButton(true);
   updateTargetLabel();
-  // 英語版のみ追加注文注記を表示
-  const noteEl = document.getElementById('additionalNote');
-  if (noteEl) noteEl.classList.toggle('hidden', currentLang !== 'en');
+  // 英語版では追加注文ボタン非対応のため非表示
+  const addBtnEl = document.getElementById('btnAdditional');
+  if (addBtnEl) addBtnEl.classList.toggle('hidden', currentLang === 'en');
   // 英語版では配送目安テキストが空なので非表示
   const deliveryEl = document.getElementById('completeDelivery');
   if (deliveryEl) deliveryEl.style.display = (currentLang === 'en' && !t('complete.delivery')) ? 'none' : '';
@@ -923,9 +927,11 @@ function setLang(lang) {
     sel.innerHTML = `<option value="">${t('select.placeholder')}</option>` + opts;
     sel.value = currentVal;
   });
-  // 英語版のみ追加注文の注記を表示
-  const noteEl = document.getElementById('additionalNote');
-  if (noteEl) noteEl.classList.toggle('hidden', lang !== 'en');
+  refreshSakeOptions(false);
+  refreshSakeOptions(true);
+  // 英語版では追加注文ボタン非対応のため非表示
+  const addBtnEl = document.getElementById('btnAdditional');
+  if (addBtnEl) addBtnEl.classList.toggle('hidden', lang === 'en');
   // 配送目安は英語版では非表示
   const deliveryEl = document.getElementById('completeDelivery');
   if (deliveryEl) deliveryEl.style.display = (lang === 'en' && !t('complete.delivery')) ? 'none' : '';
@@ -994,11 +1000,6 @@ function loadFormSettings() {
     );
     labelOptions   = settings.labelOptions || ['白ラベル', '黒ラベル'];
 
-    if (settings.guideText) {
-      document.getElementById('guideText').textContent = settings.guideText;
-      document.getElementById('guideCard').classList.remove('hidden');
-    }
-
     renderLabelOptions('labelGrid', 'lc');
     updateTargetLabel();
     showScreen('step1');
@@ -1016,8 +1017,8 @@ function loadFormSettings() {
 
 function updateTargetLabel() {
   document.getElementById('targetLbl').textContent = `${t('blend.total')}：${TARGET_ML}ml`;
-  // 合計超過オーバーレイのメッセージも更新
-  document.getElementById('overOverlayMsg').innerHTML = `合計が<br>${TARGET_ML}mlを超えています`;
+  // 合計超過オーバーレイのメッセージも言語に応じて更新
+  document.getElementById('overOverlayMsg').innerHTML = t('err.overTotal').replace(/\{ml\}/g, TARGET_ML);
 }
 
 // ===== ラベル選択肢生成（白/黒/その他 の3択固定）=====
@@ -1081,8 +1082,7 @@ function addBlendRow(isAdd) {
   }
 
   div.innerHTML = `
-    <span class="blend-num">${newCount}.</span>
-    <select id="sake-${rowId}" onchange="updateTotal(${isAdd})">
+    <select id="sake-${rowId}" onchange="updateTotal(${isAdd});refreshSakeOptions(${isAdd})">
       <option value="">${t('select.placeholder')}</option>${opts}
     </select>
     <div class="drum-wrap" id="drum-${rowId}" tabindex="0"
@@ -1105,6 +1105,7 @@ function addBlendRow(isAdd) {
   drumSetVal(rowId, 1, false);
   updateBlendAddButton(isAdd);
   updateTotal(isAdd);
+  refreshSakeOptions(isAdd);
 }
 
 function removeBlendRow(rowId, isAdd) {
@@ -1112,19 +1113,21 @@ function removeBlendRow(rowId, isAdd) {
   if (count <= 1) return;
   const el = document.getElementById(`row-${rowId}`);
   if (el) { el.remove(); if (isAdd) addBlendCount--; else mainBlendCount--; }
-  renumberBlendRows(isAdd);
   updateBlendAddButton(isAdd);
   updateTotal(isAdd);
+  refreshSakeOptions(isAdd);
 }
 
-// 行番号を振り直す
-function renumberBlendRows(isAdd) {
-  const prefix = isAdd ? 'ab' : 'b';
-  let n = 1;
-  document.querySelectorAll(`[id^="row-${prefix}-"]`).forEach(row => {
-    const numEl = row.querySelector('.blend-num');
-    if (numEl) numEl.textContent = n + '.';
-    n++;
+// 既に他の行で選択済みのお酒は、別の行のドロップダウンで選択できないようにする
+function refreshSakeOptions(isAdd) {
+  const prefix  = isAdd ? 'ab' : 'b';
+  const selects = [...document.querySelectorAll(`[id^="sake-${prefix}-"]`)];
+  const selectedValues = selects.map(s => s.value).filter(v => v);
+  selects.forEach(sel => {
+    [...sel.options].forEach(opt => {
+      if (!opt.value) return;
+      opt.disabled = opt.value !== sel.value && selectedValues.includes(opt.value);
+    });
   });
 }
 
@@ -1271,12 +1274,12 @@ function closeOverlay() {
   document.getElementById('overOverlay').classList.remove('show');
 }
 
-// ===== テキストバリデーション（絵文字・特殊文字禁止）=====
-// 英数字・ひらがな・カタカナ・漢字・スペース・基本記号のみ許可
-const TEXT_PATTERN = /^[a-zA-Z0-9\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\s\-\.\'・「」（）()、。]+$/;
+// ===== テキストバリデーション（絵文字・制御文字のみ禁止、その他の記号は許可）=====
 function isValidText(str) {
   if (!str) return false;
-  return TEXT_PATTERN.test(str);
+  if (/[\x00-\x1F\x7F]/.test(str)) return false;
+  if (/\p{Extended_Pictographic}/u.test(str)) return false;
+  return true;
 }
 
 // ===== STEP 1 → STEP 2 =====

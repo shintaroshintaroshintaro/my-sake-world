@@ -259,6 +259,7 @@ function submitRecipe(data) {
 }
 
 // ===== 確認メール送信 =====
+const CONFIRM_FROM_ADDRESS = 'mysakeworld@gmail.com'; // 送信元アドレス（このGoogleアカウントでGASプロジェクトを実行する前提）
 function sendConfirmationEmail(data, blenderId) {
   Logger.log('sendConfirmationEmail 開始: to=' + data.email + ', blenderId=' + blenderId);
   if (!data.email) {
@@ -305,11 +306,11 @@ ${recipeLines}＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 MY SAKE WORLD`;
 
   try {
-    GmailApp.sendEmail(data.email, '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body);
+    GmailApp.sendEmail(data.email, '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body, { from: CONFIRM_FROM_ADDRESS });
     Logger.log('sendConfirmationEmail: GmailApp送信成功 to=' + data.email);
   } catch (e) {
     Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e.toString());
-    MailApp.sendEmail({ to: data.email, subject: '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body: body });
+    MailApp.sendEmail({ to: data.email, from: CONFIRM_FROM_ADDRESS, subject: '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました', body: body });
     Logger.log('sendConfirmationEmail: MailApp送信完了');
   }
 }
