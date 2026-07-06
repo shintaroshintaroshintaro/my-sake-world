@@ -432,6 +432,15 @@
           </a>
         </div>
       </div>
+      <!-- Blender No. 検索ボックス -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 0 4px">
+        <label style="font-size:13px;font-weight:600;white-space:nowrap">Blender No.:</label>
+        <input type="text" id="searchBlenderId" inputmode="numeric"
+          style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px"
+          placeholder="例：1234"
+          oninput="filterOrdersByBlenderId()">
+        <button class="btn-refresh" onclick="clearBlenderSearch()">クリア</button>
+      </div>
       <div id="ordersTableWrap">
         <div class="loading"><div class="spinner"></div><p style="color:var(--text-muted);font-size:13px">読み込み中...</p></div>
       </div>
@@ -701,31 +710,40 @@ function renderOrdersTable(orders) {
     return;
   }
 
-  const rows = orders.map((o, idx) => {
-    // 受信日時から日付部分（月/日）のみ抽出
-    const rawDate = String(o['受信日時'] || '');
-    const dateShort = rawDate.replace(/^\d{4}\//, '').replace(/ .*$/, ''); // "yyyy/M/D HH:mm:ss" → "M/D"
+  // Blender No.（ID列）の降順でソート（数値として比較）
+  const sorted = [...orders].sort((a, b) => {
+    const na = parseInt(a['ID'] || a['ブレンダーID'] || 0, 10);
+    const nb = parseInt(b['ID'] || b['ブレンダーID'] || 0, 10);
+    return nb - na;
+  });
 
-    // お酒1〜8のml数セルと合計を計算
-    let mlCells = '';
-    let totalMl = 0;
+  // 検索フィルターを元のidxではなくsorted内のidxで参照するため、
+  // openEditModal は allOrders 内の元indexを渡す必要がある
+  const rows = sorted.map(o => {
+    const origIdx = allOrders.indexOf(o);
+
+    // 受信日時から日付部分（月/日）のみ抽出
+    const rawDate = String(o['作成日'] || o['受信日時'] || '');
+    const dateShort = rawDate.replace(/^\d{4}\//, '').replace(/ .*$/, '');
+
+    // 銘柄1〜8のレシピを「銘柄名 Xml / 銘柄名 Xml」形式で組み立て
+    const recipeParts = [];
     for (let i = 1; i <= 8; i++) {
-      const ml = o[`酒${i}ml`];
-      const num = ml !== undefined && ml !== '' ? parseInt(ml) || 0 : 0;
-      totalMl += num;
-      mlCells += `<td style="text-align:center;padding:11px 6px">${num > 0 ? num : ''}</td>`;
+      const name = o[`銘柄${i}`] || o[`酒${i}名`] || '';
+      const ml   = o[`銘柄${i}ml`] || o[`酒${i}ml`] || '';
+      if (name && ml) recipeParts.push(`${name} ${ml}ml`);
     }
+    const recipeStr = recipeParts.join(' / ') || '-';
 
     return `<tr class="${o['確認済み'] ? 'confirmed-row' : ''}">
-      <td><button class="btn-edit-order" onclick="openEditModal(${idx})" style="margin-right:4px">編集</button>${esc(o['ブレンダーID'] || '-')}</td>
+      <td><button class="btn-edit-order" onclick="openEditModal(${origIdx})" style="margin-right:4px">編集</button>${esc(o['ID'] || o['ブレンダーID'] || '-')}</td>
       <td style="color:var(--text-muted);font-size:12px">${esc(dateShort || '-')}</td>
-      <td style="font-weight:600">${esc(o['名前'] || '-')}</td>
-      <td style="font-size:12px">${esc(o['メール'] || '-')}</td>
-      <td>${esc(o['ブレンダー名'] || '-')}</td>
-      <td>${esc(o['レシピ名'] || '-')}</td>
-      ${mlCells}
-      <td style="text-align:center;font-weight:700;color:var(--gold)">${totalMl > 0 ? totalMl : ''}</td>
-      <td style="max-width:160px;white-space:normal;font-size:12px;color:var(--text-muted)">${esc(o['スタッフ備考'] || '')}</td>
+      <td style="font-weight:600">${esc(o['作成者'] || o['名前'] || '-')}</td>
+      <td style="font-size:12px">${esc(o['メールアドレス'] || o['メール'] || '-')}</td>
+      <td>${esc(o['ブレンダー'] || o['ブレンダー名'] || '-')}</td>
+      <td>${esc(o['タイトル'] || o['レシピ名'] || '-')}</td>
+      <td style="font-size:12px;white-space:normal;max-width:280px;color:var(--text-muted)">${esc(recipeStr)}</td>
+      <td style="max-width:160px;white-space:normal;font-size:12px;color:var(--text-muted)">${esc(o['スタッフ備考'] || o['備考1'] || '')}</td>
     </tr>`;
   }).join('');
 
@@ -739,20 +757,32 @@ function renderOrdersTable(orders) {
           <th style="min-width:140px">メール</th>
           <th style="min-width:80px">ブレンダー</th>
           <th style="min-width:100px">タイトル</th>
-          <th style="text-align:center;min-width:36px">1</th>
-          <th style="text-align:center;min-width:36px">2</th>
-          <th style="text-align:center;min-width:36px">3</th>
-          <th style="text-align:center;min-width:36px">4</th>
-          <th style="text-align:center;min-width:36px">5</th>
-          <th style="text-align:center;min-width:36px">6</th>
-          <th style="text-align:center;min-width:36px">7</th>
-          <th style="text-align:center;min-width:36px">8</th>
-          <th style="text-align:center;min-width:36px">計</th>
+          <th style="min-width:200px">レシピ</th>
           <th style="min-width:100px">備考</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+// Blender No. でリアルタイムフィルタリング
+function filterOrdersByBlenderId() {
+  const query = document.getElementById('searchBlenderId').value.trim();
+  if (!query) {
+    renderOrdersTable(allOrders);
+    return;
+  }
+  const filtered = allOrders.filter(o => {
+    const id = String(o['ID'] || o['ブレンダーID'] || '');
+    return id.includes(query);
+  });
+  renderOrdersTable(filtered);
+}
+
+// 検索ボックスをクリアして全件表示に戻す
+function clearBlenderSearch() {
+  document.getElementById('searchBlenderId').value = '';
+  renderOrdersTable(allOrders);
 }
 
 // ===== フォーム設定を読み込んでUIに反映 =====

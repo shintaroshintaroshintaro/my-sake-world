@@ -107,9 +107,7 @@
     .label-opt input:checked + label .label-name { color:var(--gold); }
 
     /* ===== メール分割入力 ===== */
-    .email-split { display:flex; align-items:center; gap:6px; }
-    .email-split input { flex:1; min-width:0; }
-    .at-mark { font-weight:700; font-size:20px; color:var(--text-muted); flex-shrink:0; line-height:1; }
+    /* .email-split / .at-mark は廃止（単一input方式に変更）*/
 
     /* ===== ブレンド行 ===== */
     .blend-header { display:grid; grid-template-columns:1fr 90px 38px; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--gold-pale); margin-bottom:8px; }
@@ -445,25 +443,17 @@
       <div class="err-msg" id="eBlend" data-t="err.blend">少なくとも1種選択してください</div>
     </div>
 
-    <!-- メール（ユーザー名@ドメインの2分割入力）-->
+    <!-- メール（1つの入力欄で全アドレスを入力）-->
     <div class="card mb0">
       <div class="section-title" data-t="section.contact">連絡先</div>
       <div class="field" id="fEmail">
         <label data-t="field.email">メールアドレス<span class="req">*</span></label>
-        <div class="email-split">
-          <input type="text" id="inEmailUser" maxlength="100" data-ph="ph.emailUser" autocomplete="email">
-          <span class="at-mark">@</span>
-          <input type="text" id="inEmailDomain" maxlength="100" data-ph="ph.emailDomain" autocomplete="off">
-        </div>
+        <input type="email" id="inEmail" maxlength="200" data-ph="ph.email" autocomplete="email">
         <div class="err-msg" id="eEmail" data-t="err.email">正しいメールアドレスを入力してください</div>
       </div>
       <div class="field mb0" id="fEmailConfirm">
         <label data-t="field.emailConfirm">メールアドレス（確認）<span class="req">*</span></label>
-        <div class="email-split">
-          <input type="text" id="inEmailConfirmUser" maxlength="100" data-ph="ph.emailUser" autocomplete="off">
-          <span class="at-mark">@</span>
-          <input type="text" id="inEmailConfirmDomain" maxlength="100" data-ph="ph.emailDomain" autocomplete="off">
-        </div>
+        <input type="email" id="inEmailConfirm" maxlength="200" data-ph="ph.email" autocomplete="off">
         <div class="err-msg" id="eEmailConfirm" data-t="err.emailMatch">メールアドレスが一致しません</div>
       </div>
     </div>
@@ -505,7 +495,8 @@
         <div class="blender-id-lbl" data-t="complete.id.label">あなたのBlender No.</div>
         <div class="blender-id-val" id="displayId">----</div>
       </div>
-      <button class="btn-ghost mt16" onclick="openSouvenirLink()" id="btnAdditional" data-t="btn.additional">
+      <!-- 追い瓶ボタン：現在は非表示（再表示する場合はdisplay:noneを削除）-->
+      <button class="btn-ghost mt16" onclick="openSouvenirLink()" id="btnAdditional" data-t="btn.additional" style="display:none">
         追い瓶・ペアリングチェンジはいかが？
       </button>
       <!-- 日本語版のお届け目安（ボタン下に移動）-->
@@ -903,9 +894,6 @@ function applyT() {
   updateBlendAddButton(false);
   updateBlendAddButton(true);
   updateTargetLabel();
-  // 英語版では追加注文ボタン非対応のため非表示
-  const addBtnEl = document.getElementById('btnAdditional');
-  if (addBtnEl) addBtnEl.classList.toggle('hidden', currentLang === 'en');
   // 英語版では配送目安テキストが空なので非表示
   const deliveryEl = document.getElementById('completeDelivery');
   if (deliveryEl) deliveryEl.style.display = (currentLang === 'en' && !t('complete.delivery')) ? 'none' : '';
@@ -929,9 +917,6 @@ function setLang(lang) {
   });
   refreshSakeOptions(false);
   refreshSakeOptions(true);
-  // 英語版では追加注文ボタン非対応のため非表示
-  const addBtnEl = document.getElementById('btnAdditional');
-  if (addBtnEl) addBtnEl.classList.toggle('hidden', lang === 'en');
   // 配送目安は英語版では非表示
   const deliveryEl = document.getElementById('completeDelivery');
   if (deliveryEl) deliveryEl.style.display = (lang === 'en' && !t('complete.delivery')) ? 'none' : '';
@@ -1330,17 +1315,13 @@ function goStep2() {
     ok = false;
   }
 
-  // メール（分割入力を結合）
-  const emailUser   = document.getElementById('inEmailUser').value.trim();
-  const emailDomain = document.getElementById('inEmailDomain').value.trim();
-  const email = emailUser && emailDomain ? emailUser + '@' + emailDomain : '';
+  // メール（単一入力欄）
+  const email   = document.getElementById('inEmail').value.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   setErr('eEmail', !emailOk, 'fEmail'); if (!emailOk) ok = false;
 
-  // メール確認（分割入力を結合して一致チェック）
-  const emailCUser   = document.getElementById('inEmailConfirmUser').value.trim();
-  const emailCDomain = document.getElementById('inEmailConfirmDomain').value.trim();
-  const emailConfirm = emailCUser && emailCDomain ? emailCUser + '@' + emailCDomain : '';
+  // メール確認（一致チェック）
+  const emailConfirm = document.getElementById('inEmailConfirm').value.trim();
   const emailMatchOk = email === emailConfirm && emailOk;
   setErr('eEmailConfirm', !emailMatchOk, 'fEmailConfirm'); if (!emailMatchOk) ok = false;
 

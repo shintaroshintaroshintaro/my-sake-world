@@ -206,6 +206,17 @@ function updateBlenderIdCounter(data) {
   return updateFormSettings({ key: 'blender_id_counter', value: String(val) });
 }
 
+// ===== 動的列管理：ヘッダー名をキーとしてデータを保存 =====
+function saveRowDynamic(sheet, data) {
+  // 1行目のヘッダーを取得
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  // ヘッダーの順番通りにデータを並べる（ヘッダーにないキーは無視、データにないヘッダーは空欄）
+  const rowData = headers.map(header => {
+    return data[header] !== undefined ? data[header] : '';
+  });
+  sheet.appendRow(rowData);
+}
+
 // ===== レシピ送信 =====
 // ブレンダーIDはお客様が入力した4桁数字をそのまま使用
 function submitRecipe(data) {
@@ -214,41 +225,36 @@ function submitRecipe(data) {
   if (!sheet) throw new Error('レシピシートが見つかりません');
 
   const blenderId = data.blenderId || '';
-  // username + domain で分割送信された場合はGAS側で結合
-  const email = data.email || (data.emailUsername && data.emailDomain
-    ? data.emailUsername + '@' + data.emailDomain : '');
+  const email     = data.email || '';
   const now       = new Date();
   const dateStr   = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
   Logger.log('submitRecipe 開始: blenderId=' + blenderId + ', name=' + data.name + ', email=' + email);
 
-  // 行データ組み立て
-  const row = [
-    blenderId,
-    dateStr,
-    data.date        || '',
-    data.recipeName  || '',
-    data.name        || '',
-    data.blenderName || '',
-    data.labelColor  || '',
-  ];
+  // ヘッダー名と一致するキー名でデータを組み立て
+  const rowData = {
+    'ID'          : blenderId,
+    '作成日'      : dateStr,
+    '作成者'      : data.name        || '',
+    'ブレンダー'  : data.blenderName || '',
+    'タイトル'    : data.recipeName  || '',
+    'メールアドレス': email,
+    '電話番号'    : '',
+    '郵便番号'    : '',
+    '住所'        : '',
+    '備考1'       : '',
+  };
 
-  // 最大8種のブレンド（酒名・mlを交互に格納）
-  for (let i = 0; i < 8; i++) {
-    const b = data.blends && data.blends[i];
-    row.push(b ? (b.name || '') : '');
-    row.push(b ? (b.ml   || '') : '');
-  }
+  // 最大8種のブレンド（送信時点の銘柄名とml数を保存）
+  (data.blends || []).forEach((b, i) => {
+    rowData[`銘柄${i + 1}`]   = (b && b.name) ? b.name : '';
+    rowData[`銘柄${i + 1}ml`] = (b && b.ml)   ? b.ml   : '';
+  });
 
-  row.push(email);
-  row.push('');  // 確認済みフラグ
-  row.push('');  // スタッフ備考
-
-  sheet.appendRow(row);
+  saveRowDynamic(sheet, rowData);
   Logger.log('submitRecipe: スプレッドシートへの書き込み完了');
 
   // 確認メール送信（エラーでもレシピ保存は成功として返す）
-  // メール送信（email変数を含むdataコピーを渡す）
   try {
     sendConfirmationEmail({ ...data, email: email }, blenderId);
   } catch (emailErr) {
@@ -276,49 +282,54 @@ function sendConfirmationEmail(data, blenderId) {
     ? data.date.replace(/-/g, '/')
     : Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd');
 
-  // ブレンドレシピを番号付きリストに整形
-  let recipeLines = '';
+  // ブレンドレシピをHTML行に整形
+  let recipeRows = '';
   (data.blends || []).forEach((b, i) => {
-    if (b && b.name) recipeLines += `${i + 1}. ${b.name}  ${b.ml}ml\n`;
+    if (b && b.name) {
+      recipeRows += `<tr><td style="padding:4px 12px 4px 0;color:#555">${i + 1}. ${b.name}</td><td style="padding:4px 0;font-weight:bold">${b.ml}ml</td></tr>`;
+    }
   });
 
-  const body =
-`${data.name || ''}さま
+  // HTMLメール本文
+  const htmlBody = `
+<div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#fff;color:#333">
+  <h2 style="font-size:18px;font-weight:bold;color:#B8860B;border-bottom:1px solid #e0d0a0;padding-bottom:8px;margin-top:0">MY SAKE WORLD</h2>
+  <p>${data.name || ''}さま</p>
+  <p>あなたの"My Sake"が登録できました！</p>
+  <p style="margin:16px 0">
+    <a href="${SHOPIFY_URL}" style="display:inline-block;padding:10px 20px;background:#B8860B;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold">こちらからご発注いただけます</a>
+  </p>
+  <p style="font-size:13px;color:#888">レシピの保管期限：${expiryStr}まで</p>
+  <p style="font-size:13px;color:#888">価格：200ml / ¥2,000　720ml / ¥4,900</p>
 
-あなたの"My Sake"が登録できました！
+  <div style="margin-top:20px;background:#fdfaf4;border:1px solid #e0d0a0;border-radius:8px;padding:16px">
+    <div style="font-weight:bold;font-size:14px;color:#B8860B;margin-bottom:10px">${data.name || ''}さんのMy Sake Recipe</div>
+    <table style="font-size:13px;border-collapse:collapse;width:100%">
+      <tr><td style="padding:4px 12px 4px 0;color:#888">制作日</td><td>${displayDate}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#888">Blender No.</td><td>${blenderId}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#888">Blender</td><td>${data.blenderName || ''}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#888">Title</td><td>${data.recipeName || ''}</td></tr>
+    </table>
+    <div style="margin-top:12px;font-size:13px;font-weight:bold;color:#555">Recipe：</div>
+    <table style="font-size:13px;border-collapse:collapse;margin-top:4px">${recipeRows}</table>
+  </div>
 
-こちらからご発注いただけます。
-${SHOPIFY_URL}
-
-レシピの保管期限：${expiryStr}まで
-
-価格：200ml / ¥2,000　　720ml / ¥4,900
-
-${data.name || ''}さんのMy Sake Recipe
-＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-制作日：${displayDate}
-ブレンダーID：${blenderId}
-Blender：${data.blenderName || ''}
-Title：${data.recipeName || ''}
-
-Recipe：
-${recipeLines}＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-
-MY SAKE WORLD`;
+  <p style="font-size:11px;color:#aaa;margin-top:20px;text-align:center">MY SAKE WORLD</p>
+</div>`;
 
   const subject = '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました';
   try {
-    GmailApp.sendEmail(data.email, subject, body, { from: CONFIRM_FROM_ADDRESS, name: CONFIRM_FROM_NAME });
+    GmailApp.sendEmail(data.email, subject, '', { from: CONFIRM_FROM_ADDRESS, name: CONFIRM_FROM_NAME, htmlBody: htmlBody });
     Logger.log('sendConfirmationEmail: 送信成功 from=' + CONFIRM_FROM_ADDRESS + ' to=' + data.email);
   } catch (e) {
     // エイリアスが使えない場合に備え、fromを指定せずデフォルトのアドレスで再試行
     Logger.log('sendConfirmationEmail: from指定での送信に失敗、デフォルトアドレスで再試行: ' + e.toString());
     try {
-      GmailApp.sendEmail(data.email, subject, body);
+      GmailApp.sendEmail(data.email, subject, '', { htmlBody: htmlBody });
       Logger.log('sendConfirmationEmail: デフォルトアドレスで送信成功 to=' + data.email);
     } catch (e2) {
       Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e2.toString());
-      MailApp.sendEmail({ to: data.email, subject: subject, body: body });
+      MailApp.sendEmail({ to: data.email, subject: subject, htmlBody: htmlBody });
       Logger.log('sendConfirmationEmail: MailApp送信完了（デフォルトアドレス）');
     }
   }
@@ -340,31 +351,30 @@ function submitAdditionalOrder(data) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
 
-  const blenderId = data.blenderId || '';
-  // username + domain で分割送信された場合はGAS側で結合
-  const ordererEmail = data.ordererEmail || (data.ordererEmailUsername && data.ordererEmailDomain
-    ? data.ordererEmailUsername + '@' + data.ordererEmailDomain : '');
-  const now     = new Date();
-  const dateStr = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
+  const blenderId    = data.blenderId || '';
+  const ordererEmail = data.ordererEmail || '';
+  const now          = new Date();
+  const dateStr      = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
   Logger.log('submitAdditionalOrder 開始: blenderId=' + blenderId + ', orderer=' + data.ordererName);
 
-  const row = [
-    blenderId,
-    dateStr,
-    data.ordererName || '',
-    ordererEmail,
-    data.qty200        || 0,
-    data.qty720        || 0,
-    data.isGift        ? 'はい' : 'いいえ',
-    data.recipientName || '',
-    data.phone         || '',
-    data.zipcode       || '',
-    data.address       || '',
-    data.building      || ''
-  ];
+  // ヘッダー名と一致するキー名でデータを組み立て
+  const rowData = {
+    'ブレンダーID': blenderId,
+    '受信日時'  : dateStr,
+    '発注者名'  : data.ordererName  || '',
+    'メール'    : ordererEmail,
+    '200ml本数' : data.qty200       || 0,
+    '720ml本数' : data.qty720       || 0,
+    'ギフトフラグ': data.isGift     ? 'はい' : 'いいえ',
+    '宛名'      : data.recipientName || '',
+    '電話'      : data.phone        || '',
+    '郵便番号'  : data.zipcode      || '',
+    '住所'      : data.address      || '',
+    '建物名'    : data.building     || ''
+  };
 
-  sheet.appendRow(row);
+  saveRowDynamic(sheet, rowData);
   Logger.log('submitAdditionalOrder: スプレッドシートへの書き込み完了');
 
   // 注文完了メール送信（ordererEmail変数を含むdataコピーを渡す）
@@ -584,13 +594,15 @@ function initialize() {
   sakeSheet.getRange(1, 1, sakeList.length, 2).setValues(sakeList);
 
   // --- レシピシート ---
-  // 1列目: ブレンダーID（お客様手入力の4桁数字）、末尾にスタッフ備考追加
+  // A:ID  B:作成日  C:作成者  D:ブレンダー  E:タイトル  F:メールアドレス
+  // G:電話番号  H:郵便番号  I:住所  J:備考1  K以降:銘柄1/銘柄1ml...銘柄8/銘柄8ml
   let recipeSheet = ss.getSheetByName(RECIPE_SHEET_NAME) || ss.insertSheet(RECIPE_SHEET_NAME);
   const recipeHeaders = [
-    'ブレンダーID', '受信日時', '制作日', 'レシピ名', '名前', 'ブレンダー名', 'ラベル色',
-    '酒1名','酒1ml','酒2名','酒2ml','酒3名','酒3ml','酒4名','酒4ml',
-    '酒5名','酒5ml','酒6名','酒6ml','酒7名','酒7ml','酒8名','酒8ml',
-    'メール', '確認済み', 'スタッフ備考'
+    'ID', '作成日', '作成者', 'ブレンダー', 'タイトル', 'メールアドレス',
+    '電話番号', '郵便番号', '住所', '備考1',
+    '銘柄1','銘柄1ml','銘柄2','銘柄2ml','銘柄3','銘柄3ml','銘柄4','銘柄4ml',
+    '銘柄5','銘柄5ml','銘柄6','銘柄6ml','銘柄7','銘柄7ml','銘柄8','銘柄8ml',
+    '確認済み', 'スタッフ備考'
   ];
   recipeSheet.getRange(1, 1, 1, recipeHeaders.length).setValues([recipeHeaders]);
 
