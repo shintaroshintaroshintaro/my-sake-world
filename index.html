@@ -499,8 +499,6 @@
       <button class="btn-ghost mt16" onclick="openSouvenirLink()" id="btnAdditional" data-t="btn.additional" style="display:none">
         追い瓶・ペアリングチェンジはいかが？
       </button>
-      <!-- 日本語版のお届け目安（ボタン下に移動）-->
-      <p id="completeDelivery" style="font-size:15px;color:var(--text-muted);margin-top:14px;line-height:1.7" data-t="complete.delivery">受注後、約一か月後にお届けいたします。</p>
     </div>
   </div><!-- /step3 -->
 
@@ -732,7 +730,6 @@ const T = {
     'confirm.question'        : 'こちらでお間違いありませんか？',
     'complete.title'          : '登録完了',
     'complete.msg'            : 'あなたのMy Sakeのレシピが登録できました！\nあなたのレシピ詳細をメールでお送りします。',
-    'complete.delivery'       : '受注後、約一か月後にお届けいたします。',
     'complete.id.label'       : 'あなたのBlender No.',
     'additional.greeting'     : 'ありがとうございます！',
     'qty.200'                 : '200ml × 本数',
@@ -821,7 +818,6 @@ const T = {
     'confirm.question'        : 'Does everything look correct?',
     'complete.title'          : 'Registration Complete',
     'complete.msg'            : 'Your My Sake recipe has been registered!\nWe will send you the details by email.',
-    'complete.delivery'       : '',
     'complete.id.label'       : 'Your Blender No.',
     'additional.greeting'     : 'Thank you!',
     'qty.200'                 : '200ml × Bottles',
@@ -894,9 +890,6 @@ function applyT() {
   updateBlendAddButton(false);
   updateBlendAddButton(true);
   updateTargetLabel();
-  // 英語版では配送目安テキストが空なので非表示
-  const deliveryEl = document.getElementById('completeDelivery');
-  if (deliveryEl) deliveryEl.style.display = (currentLang === 'en' && !t('complete.delivery')) ? 'none' : '';
 }
 
 function setLang(lang) {
@@ -917,9 +910,6 @@ function setLang(lang) {
   });
   refreshSakeOptions(false);
   refreshSakeOptions(true);
-  // 配送目安は英語版では非表示
-  const deliveryEl = document.getElementById('completeDelivery');
-  if (deliveryEl) deliveryEl.style.display = (lang === 'en' && !t('complete.delivery')) ? 'none' : '';
   if (document.getElementById('step2').classList.contains('active'))   renderConfirmation();
   if (document.getElementById('stepA2').classList.contains('active')) renderAdditionalConfirmation();
 }

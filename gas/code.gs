@@ -255,10 +255,15 @@ function submitRecipe(data) {
   Logger.log('submitRecipe: スプレッドシートへの書き込み完了');
 
   // 確認メール送信（エラーでもレシピ保存は成功として返す）
-  try {
-    sendConfirmationEmail({ ...data, email: email }, blenderId);
-  } catch (emailErr) {
-    Logger.log('メール送信エラー: ' + emailErr.toString());
+  Logger.log('submitRecipe: メール送信開始 → email=' + email + ', blends数=' + (data.blends || []).length);
+  if (!email) {
+    Logger.log('submitRecipe: メールアドレスが空のためメール送信スキップ');
+  } else {
+    try {
+      sendConfirmationEmail({ ...data, email: email }, blenderId);
+    } catch (emailErr) {
+      Logger.log('submitRecipe: メール送信エラー: ' + emailErr.toString());
+    }
   }
 
   return { success: true, blenderId: blenderId };
@@ -317,20 +322,38 @@ function sendConfirmationEmail(data, blenderId) {
   <p style="font-size:11px;color:#aaa;margin-top:20px;text-align:center">MY SAKE WORLD</p>
 </div>`;
 
+  // htmlBodyが空でないことを確認
+  Logger.log('sendConfirmationEmail: htmlBody長=' + htmlBody.length + ', blenderId=' + blenderId + ', blends数=' + (data.blends || []).length);
+
   const subject = '【MY SAKE WORLD】あなたのMy Sakeレシピが登録されました';
   try {
-    GmailApp.sendEmail(data.email, subject, '', { from: CONFIRM_FROM_ADDRESS, name: CONFIRM_FROM_NAME, htmlBody: htmlBody });
-    Logger.log('sendConfirmationEmail: 送信成功 from=' + CONFIRM_FROM_ADDRESS + ' to=' + data.email);
+    GmailApp.sendEmail(
+      data.email,
+      subject,
+      '',
+      {
+        from    : CONFIRM_FROM_ADDRESS,
+        name    : CONFIRM_FROM_NAME,
+        htmlBody: htmlBody
+      }
+    );
+    Logger.log('メール送信成功：' + data.email);
   } catch (e) {
-    // エイリアスが使えない場合に備え、fromを指定せずデフォルトのアドレスで再試行
-    Logger.log('sendConfirmationEmail: from指定での送信に失敗、デフォルトアドレスで再試行: ' + e.toString());
+    Logger.log('メール送信エラー（エイリアス）：' + e.toString());
+    // フォールバック：エイリアスなしで再送信
     try {
-      GmailApp.sendEmail(data.email, subject, '', { htmlBody: htmlBody });
-      Logger.log('sendConfirmationEmail: デフォルトアドレスで送信成功 to=' + data.email);
+      GmailApp.sendEmail(
+        data.email,
+        subject,
+        '',
+        {
+          name    : CONFIRM_FROM_NAME,
+          htmlBody: htmlBody
+        }
+      );
+      Logger.log('フォールバック送信成功：' + data.email);
     } catch (e2) {
-      Logger.log('sendConfirmationEmail: GmailApp失敗、MailAppで再試行: ' + e2.toString());
-      MailApp.sendEmail({ to: data.email, subject: subject, htmlBody: htmlBody });
-      Logger.log('sendConfirmationEmail: MailApp送信完了（デフォルトアドレス）');
+      Logger.log('フォールバック送信エラー：' + e2.toString());
     }
   }
 }
@@ -425,7 +448,6 @@ ${data.address || ''}${data.building ? ' ' + data.building : ''}
 TEL：${data.phone || ''}
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 
-受注後、約一か月後にお届けいたします。
 ご不明点やご相談は、店舗スタッフまでお気軽にお申し付けくださいませ。
 
 MY SAKE WORLD`;
@@ -514,6 +536,7 @@ function addSake(name) {
   if (!sheet) throw new Error('酒リストシートが見つかりません');
   // B列（英語名）は空で追加、後からupdateSakeEnNameで更新可能
   sheet.appendRow([name.trim(), '']);
+  Logger.log('addSake: 追加完了 → ' + name.trim() + '（現在 ' + sheet.getLastRow() + ' 行）');
   return { success: true };
 }
 
@@ -544,6 +567,7 @@ function deleteSake(name) {
   for (let i = lastRow; i >= 1; i--) {
     if (sheet.getRange(i, 1).getValue() === name) {
       sheet.deleteRow(i);
+      Logger.log('deleteSake: 削除完了 → ' + name + '（残り ' + (sheet.getLastRow()) + ' 行）');
       return { success: true };
     }
   }
@@ -578,20 +602,25 @@ function initialize() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   // --- 酒リストシート ---
+  // データが既にある場合は上書きしない（admin.htmlで変更した内容を保持するため）
   let sakeSheet = ss.getSheetByName(SAKE_SHEET_NAME) || ss.insertSheet(SAKE_SHEET_NAME);
-  sakeSheet.clearContents();
-  // A列: 日本語名, B列: 英語名
-  const sakeList = [
-    ['龍勢',           'Ryusei'],
-    ['英勲',           'Eikun'],
-    ['神蔵',           'Mikura'],
-    ['神聖',           'Shinsei'],
-    ['にいだしぜんしゅ', 'Niida Shizenshu'],
-    ['抱腹絶倒',       'Hofuku Zettou'],
-    ['TAMA',          'TAMA'],
-    ['2013ヴィンテージ', '2013 Vintage']
-  ];
-  sakeSheet.getRange(1, 1, sakeList.length, 2).setValues(sakeList);
+  if (sakeSheet.getLastRow() === 0) {
+    // シートが空の場合のみ初期データを投入
+    const sakeList = [
+      ['龍勢',           'Ryusei'],
+      ['英勲',           'Eikun'],
+      ['神蔵',           'Mikura'],
+      ['神聖',           'Shinsei'],
+      ['にいだしぜんしゅ', 'Niida Shizenshu'],
+      ['抱腹絶倒',       'Hofuku Zettou'],
+      ['TAMA',          'TAMA'],
+      ['2013ヴィンテージ', '2013 Vintage']
+    ];
+    sakeSheet.getRange(1, 1, sakeList.length, 2).setValues(sakeList);
+    Logger.log('酒リスト: 初期データを投入しました');
+  } else {
+    Logger.log('酒リスト: データが既に存在するためスキップ（' + sakeSheet.getLastRow() + '行）');
+  }
 
   // --- レシピシート ---
   // A:ID  B:作成日  C:作成者  D:ブレンダー  E:タイトル  F:メールアドレス
